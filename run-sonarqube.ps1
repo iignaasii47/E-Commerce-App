@@ -27,3 +27,4 @@ Pop-Location
 Write-Host "=== SonarQube scans completed ==="
 Write-Host "Backend: http://localhost:9000/dashboard?id=ecommerce-api"
 Write-Host "Frontend: http://localhost:9000/dashboard?id=ecommerce-web"
+Set-Location $root
