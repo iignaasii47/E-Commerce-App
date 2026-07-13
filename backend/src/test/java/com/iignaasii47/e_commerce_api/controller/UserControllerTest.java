@@ -103,11 +103,11 @@ class UserControllerTest {
     void shouldLoginAndReturn200WithToken() throws Exception {
         User user = new User(1L, "john", "john@example.com", "encrypted", FIXED_TIME);
         Authentication auth = new Authentication(user, "jwt-token-value");
-        when(userUseCase.login("john", "secret123")).thenReturn(auth);
+        when(userUseCase.login("john@example.com", "secret123")).thenReturn(auth);
 
         String requestBody = """
                 {
-                    "username": "john",
+                    "email": "john@example.com",
                     "password": "secret123"
                 }
                 """;
@@ -124,11 +124,11 @@ class UserControllerTest {
 
     @Test
     void shouldReturn401WhenInvalidCredentials() throws Exception {
-        when(userUseCase.login(eq("john"), eq("wrong"))).thenThrow(new InvalidCredentialsException("Invalid username or password"));
+        when(userUseCase.login(eq("john@example.com"), eq("wrong"))).thenThrow(new InvalidCredentialsException("Invalid email or password"));
 
         String requestBody = """
                 {
-                    "username": "john",
+                    "email": "john@example.com",
                     "password": "wrong"
                 }
                 """;
@@ -137,7 +137,7 @@ class UserControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.message").value("Invalid username or password"));
+                .andExpect(jsonPath("$.message").value("Invalid email or password"));
     }
 
     @Test

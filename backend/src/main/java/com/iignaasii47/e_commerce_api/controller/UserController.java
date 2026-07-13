@@ -36,7 +36,7 @@ public class UserController {
 
     @PostMapping("/login")
     public LoginResponse login(@Valid @RequestBody LoginRequest request) {
-        return LoginResponse.from(userUseCase.login(request.getUsername(), request.getPassword()));
+        return LoginResponse.from(userUseCase.login(request.getEmail(), request.getPassword()));
     }
 
 }

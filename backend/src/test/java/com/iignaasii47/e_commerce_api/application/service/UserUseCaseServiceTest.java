@@ -85,37 +85,37 @@ class UserUseCaseServiceTest {
     @Test
     void shouldLoginAndReturnToken() {
         User user = new User(1L, "john", "john@example.com", "encrypted", FIXED_TIME);
-        when(userRepository.findByUsername("john")).thenReturn(Optional.of(user));
+        when(userRepository.findByEmail("john@example.com")).thenReturn(Optional.of(user));
         when(passwordEncryption.matches("secret123", "encrypted")).thenReturn(true);
-        when(tokenService.generateToken(1L, "john")).thenReturn("jwt-token");
+        when(tokenService.generateToken(1L, "john@example.com")).thenReturn("jwt-token");
 
-        Authentication result = userUseCaseService.login("john", "secret123");
+        Authentication result = userUseCaseService.login("john@example.com", "secret123");
 
         assertThat(result.getUser().getId()).isEqualTo(1L);
         assertThat(result.getUser().getUsername()).isEqualTo("john");
         assertThat(result.getToken()).isEqualTo("jwt-token");
 
-        verify(tokenService).generateToken(1L, "john");
+        verify(tokenService).generateToken(1L, "john@example.com");
     }
 
     @Test
-    void shouldThrowWhenUsernameNotFound() {
-        when(userRepository.findByUsername("unknown")).thenReturn(Optional.empty());
+    void shouldThrowWhenEmailNotFound() {
+        when(userRepository.findByEmail("unknown@example.com")).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> userUseCaseService.login("unknown", "pwd"))
+        assertThatThrownBy(() -> userUseCaseService.login("unknown@example.com", "pwd"))
                 .isInstanceOf(InvalidCredentialsException.class)
-                .hasMessage("Invalid username or password");
+                .hasMessage("Invalid email or password");
     }
 
     @Test
     void shouldThrowWhenPasswordDoesNotMatch() {
         User user = new User(1L, "john", "john@example.com", "encrypted", FIXED_TIME);
-        when(userRepository.findByUsername("john")).thenReturn(Optional.of(user));
+        when(userRepository.findByEmail("john@example.com")).thenReturn(Optional.of(user));
         when(passwordEncryption.matches("wrong", "encrypted")).thenReturn(false);
 
-        assertThatThrownBy(() -> userUseCaseService.login("john", "wrong"))
+        assertThatThrownBy(() -> userUseCaseService.login("john@example.com", "wrong"))
                 .isInstanceOf(InvalidCredentialsException.class)
-                .hasMessage("Invalid username or password");
+                .hasMessage("Invalid email or password");
     }
 
 }

@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { of, throwError } from 'rxjs';
 import { LoginComponent } from './login.component';
 import { AuthService, NotificationService } from '../../../services';
 
@@ -41,29 +42,51 @@ describe('LoginComponent', () => {
 
   it('should show error when submitting with empty fields', async () => {
     const { fixture } = await setup();
-    const notifications = TestBed.inject(NotificationService);
-    const errorSpy = vi.spyOn(notifications, 'error');
     const form = fixture.nativeElement.querySelector('.auth-form') as HTMLFormElement;
     form.dispatchEvent(new Event('submit'));
-    expect(errorSpy).toHaveBeenCalledWith('email and password required');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('email and password required');
   });
 
   it('should call auth.login and navigate on valid submit', async () => {
     const { fixture, component } = await setup();
     const auth = TestBed.inject(AuthService);
     const notifications = TestBed.inject(NotificationService);
-    const loginSpy = vi.spyOn(auth, 'login');
-    const successSpy = vi.spyOn(notifications, 'success');
     const routerSpy = vi.spyOn((component as any).router, 'navigate');
+    const loginSpy = vi.spyOn(auth, 'login').mockImplementation((email: string, _password: string) => {
+      (auth as any).currentUser.set({ id: 1, username: email.split('@')[0], email, token: 't' });
+      return of({ id: 1, username: email.split('@')[0], email, createdAt: '', token: 't' });
+    });
+    const successSpy = vi.spyOn(notifications, 'success');
 
     component.email.set('test@example.com');
     component.password.set('password123');
+    fixture.detectChanges();
 
     const form = fixture.nativeElement.querySelector('.auth-form') as HTMLFormElement;
     form.dispatchEvent(new Event('submit'));
+    fixture.detectChanges();
 
     expect(loginSpy).toHaveBeenCalledWith('test@example.com', 'password123');
     expect(successSpy).toHaveBeenCalledWith('welcome back, test');
     expect(routerSpy).toHaveBeenCalledWith(['/']);
+  });
+
+  it('should show error banner on login failure', async () => {
+    const { fixture, component } = await setup();
+    const auth = TestBed.inject(AuthService);
+    vi.spyOn(auth, 'login').mockReturnValue(
+      throwError(() => ({ status: 401, error: { message: 'invalid credentials' } })),
+    );
+
+    component.email.set('bad@test.com');
+    component.password.set('wrong');
+    fixture.detectChanges();
+
+    const form = fixture.nativeElement.querySelector('.auth-form') as HTMLFormElement;
+    form.dispatchEvent(new Event('submit'));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('invalid credentials');
   });
 });

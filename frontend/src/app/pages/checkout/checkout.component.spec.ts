@@ -90,7 +90,7 @@ describe('CheckoutComponent', () => {
     const cart = TestBed.inject(CartService);
     cart.addToCart(mockProduct());
     const auth = TestBed.inject(AuthService);
-    auth.login('user@test.com', 'pass');
+    (auth as any).currentUser.set({ id: 1, username: 'user', email: 'user@test.com', token: 't' });
     const notifications = TestBed.inject(NotificationService);
     const successSpy = vi.spyOn(notifications, 'success');
     const clearSpy = vi.spyOn(cart, 'clearCart');
@@ -152,7 +152,7 @@ describe('CheckoutComponent', () => {
     const notifications = TestBed.inject(NotificationService);
     const infoSpy = vi.spyOn(notifications, 'success');
     const auth = TestBed.inject(AuthService);
-    auth.login('user@test.com', 'pass');
+    (auth as any).currentUser.set({ id: 1, username: 'user', email: 'user@test.com', token: 't' });
     fixture.detectChanges();
     await fixture.whenStable();
 

@@ -17,6 +17,19 @@ interface RegisterResponse {
   createdAt: string;
 }
 
+interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+interface LoginResponse {
+  id: number;
+  username: string;
+  email: string;
+  createdAt: string;
+  token: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
@@ -28,6 +41,10 @@ export class AuthService {
   readonly isLoggedIn = computed(() => this.currentUser() !== null);
 
   readonly username = computed(() => this.currentUser()?.username ?? 'guest');
+
+  constructor() {
+    this.restoreSession();
+  }
 
   register(username: string, email: string, password: string): Observable<RegisterResponse> {
     const body: RegisterRequest = { username, email, password };
@@ -42,18 +59,39 @@ export class AuthService {
     );
   }
 
-  login(email: string, _password: string): boolean {
-    const mockUser: User = {
-      id: 1,
-      email,
-      username: email.split('@')[0],
-      token: 'mock-jwt-token-' + Math.random().toString(36).slice(2),
-    };
-    this.currentUser.set(mockUser);
-    return true;
+  login(email: string, password: string): Observable<LoginResponse> {
+    const body: LoginRequest = { email, password };
+    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, body).pipe(
+      tap((res) => {
+        localStorage.setItem('jwt_token', res.token);
+        localStorage.setItem('user', JSON.stringify({ id: res.id, username: res.username, email: res.email }));
+        this.currentUser.set({
+          id: res.id,
+          username: res.username,
+          email: res.email,
+          token: res.token,
+        });
+      }),
+    );
   }
 
   logout(): void {
+    localStorage.removeItem('jwt_token');
+    localStorage.removeItem('user');
     this.currentUser.set(null);
+  }
+
+  private restoreSession(): void {
+    const token = localStorage.getItem('jwt_token');
+    const raw = localStorage.getItem('user');
+    if (token && raw) {
+      try {
+        const { id, username, email } = JSON.parse(raw);
+        this.currentUser.set({ id, username, email, token });
+      } catch {
+        localStorage.removeItem('jwt_token');
+        localStorage.removeItem('user');
+      }
+    }
   }
 }

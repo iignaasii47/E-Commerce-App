@@ -7,6 +7,6 @@ public interface UserUseCase {
 
     User register(User user);
 
-    Authentication login(String username, String password);
+    Authentication login(String email, String password);
 
 }

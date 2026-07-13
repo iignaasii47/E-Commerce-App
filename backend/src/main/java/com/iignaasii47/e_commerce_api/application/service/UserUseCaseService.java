@@ -41,15 +41,15 @@ public class UserUseCaseService implements UserUseCase {
 
     @Override
     @Transactional(readOnly = true)
-    public Authentication login(String username, String password) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new InvalidCredentialsException("Invalid username or password"));
+    public Authentication login(String email, String password) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid email or password"));
 
         if (!passwordEncryption.matches(password, user.getPassword())) {
-            throw new InvalidCredentialsException("Invalid username or password");
+            throw new InvalidCredentialsException("Invalid email or password");
         }
 
-        String token = tokenService.generateToken(user.getId(), user.getUsername());
+        String token = tokenService.generateToken(user.getId(), user.getEmail());
         return new Authentication(user, token);
     }
 

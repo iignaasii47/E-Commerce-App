@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService, NotificationService } from '../../../services';
 import { TerminalInputComponent } from '../../../components/shared/terminal-input/terminal-input.component';
 import { TerminalButtonComponent } from '../../../components/shared/terminal-button/terminal-button.component';
@@ -13,6 +14,12 @@ import { TerminalButtonComponent } from '../../../components/shared/terminal-but
       <div class="auth-box">
         <h1 class="page-title">su - login</h1>
         <p class="page-subtitle">authenticate to your account</p>
+
+        @if (errorMessage()) {
+          <div class="error-banner">
+            <span class="error-icon">[!!]</span> {{ errorMessage() }}
+          </div>
+        }
 
         <form class="auth-form" (submit)="onSubmit($event)">
           <div class="form-fields">
@@ -32,8 +39,8 @@ import { TerminalButtonComponent } from '../../../components/shared/terminal-but
           </div>
 
           <div class="auth-actions">
-            <app-terminal-button variant="primary" type="submit">
-              login
+            <app-terminal-button variant="primary" type="submit" [disabled]="loading()">
+              {{ loading() ? 'authenticating...' : 'login' }}
             </app-terminal-button>
           </div>
         </form>
@@ -70,6 +77,22 @@ import { TerminalButtonComponent } from '../../../components/shared/terminal-but
       margin-bottom: 16px;
     }
 
+    .error-banner {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+      border: 1px solid var(--accent-red);
+      background: rgba(255, 95, 86, 0.05);
+      color: var(--accent-red);
+      font-size: 12px;
+    }
+
+    .error-icon {
+      font-weight: 700;
+    }
+
     .auth-actions {
       display: flex;
       justify-content: flex-end;
@@ -99,17 +122,37 @@ export class LoginComponent {
 
   readonly email = signal('');
   readonly password = signal('');
+  readonly loading = signal(false);
+  readonly errorMessage = signal('');
 
   onSubmit(event: Event): void {
     event.preventDefault();
+    this.errorMessage.set('');
+
     if (!this.email() || !this.password()) {
-      this.notifications.error('email and password required');
+      this.errorMessage.set('email and password required');
       return;
     }
-    const success = this.auth.login(this.email(), this.password());
-    if (success) {
-      this.notifications.success(`welcome back, ${this.auth.username()}`);
-      this.router.navigate(['/']);
-    }
+
+    this.loading.set(true);
+
+    this.auth.login(this.email(), this.password()).subscribe({
+      next: () => {
+        this.loading.set(false);
+        this.notifications.success(`welcome back, ${this.auth.username()}`);
+        this.router.navigate(['/']);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.loading.set(false);
+
+        if (err.status === 401) {
+          this.errorMessage.set(err.error?.message ?? 'invalid credentials');
+        } else if (err.status === 0) {
+          this.errorMessage.set('cannot connect to server — is the backend running?');
+        } else {
+          this.errorMessage.set('login failed — please try again');
+        }
+      },
+    });
   }
 }

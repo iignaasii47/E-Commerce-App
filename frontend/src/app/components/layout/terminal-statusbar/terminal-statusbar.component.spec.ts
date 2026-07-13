@@ -44,7 +44,7 @@ describe('TerminalStatusbarComponent', () => {
   it('should show username when authenticated', async () => {
     const { fixture } = await setup();
     const auth = TestBed.inject(AuthService);
-    auth.login('test@user.com', 'pass');
+    (auth as any).currentUser.set({ id: 1, username: 'test', email: 'test@user.com', token: 't' });
     fixture.detectChanges();
     const link = fixture.nativeElement.querySelector('.statusbar__link');
     expect(link).toBeFalsy();

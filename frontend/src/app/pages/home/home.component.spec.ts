@@ -43,7 +43,7 @@ describe('HomeComponent', () => {
   it('should hide login link when logged in', async () => {
     const { fixture } = await setup();
     const auth = TestBed.inject(AuthService);
-    auth.login('user@test.com', 'pass');
+    (auth as any).currentUser.set({ id: 1, username: 'user', email: 'user@test.com', token: 't' });
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).not.toContain('sign in');
   });
@@ -51,7 +51,7 @@ describe('HomeComponent', () => {
   it('should show username when logged in', async () => {
     const { fixture } = await setup();
     const auth = TestBed.inject(AuthService);
-    auth.login('testuser@test.com', 'pass');
+    (auth as any).currentUser.set({ id: 1, username: 'testuser', email: 'testuser@test.com', token: 't' });
     fixture.detectChanges();
     const sessionRow = fixture.nativeElement.querySelector('.info-grid') as HTMLElement;
     expect(sessionRow.textContent).toContain('testuser@term-shop');

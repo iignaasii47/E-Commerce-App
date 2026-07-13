@@ -164,7 +164,7 @@ Rules:
 - Domain exceptions → domain.exception
 - Global exception handler → controller or infrastructure.config
 - Never expose internal stack traces to clients
-- API errors are logged to `logs/trello.json`. When investigating errors, check this file first — the most recent log entries usually correspond to the error being investigated.
+- API errors are logged to `logs/errors.log`. When investigating errors, check this file first — the most recent log entries usually correspond to the error being investigated.
 
 ---
 
