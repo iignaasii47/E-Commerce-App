@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 import { ProductService } from '../../services';
@@ -9,9 +9,10 @@ import { TerminalInputComponent } from '../../components/shared/terminal-input/t
 @Component({
   selector: 'app-products',
   standalone: true,
-  imports: [TerminalCardComponent, TerminalInputComponent],
+  imports: [RouterLink, TerminalCardComponent, TerminalInputComponent],
   template: `
     <div class="page-container">
+      <a routerLink="/" class="back-link">$ cd ~</a>
       <h1 class="page-title">ls products/</h1>
       <p class="page-subtitle">
         {{ filteredProducts().length }} items found
@@ -58,6 +59,17 @@ import { TerminalInputComponent } from '../../components/shared/terminal-input/t
     </div>
   `,
   styles: `
+    .back-link {
+      display: inline-block;
+      margin-bottom: 4px;
+      font-size: 11px;
+      color: var(--text-muted);
+
+      &:hover {
+        color: var(--accent-cyan);
+      }
+    }
+
     .filters {
       margin-bottom: 16px;
       display: flex;
