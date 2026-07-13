@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { TerminalStatusbarComponent } from './terminal-statusbar.component';
-import { AuthService, CartService } from '../../../services';
+import { CartService } from '../../../services';
 
 describe('TerminalStatusbarComponent', () => {
   async function setup() {
@@ -29,27 +29,6 @@ describe('TerminalStatusbarComponent', () => {
     const { fixture } = await setup();
     expect(fixture.nativeElement.querySelector('.status-dot--connected')).toBeTruthy();
     expect(fixture.nativeElement.textContent).toContain('connected');
-  });
-
-  it('should show login link when not authenticated', async () => {
-    const { fixture } = await setup();
-    const auth = TestBed.inject(AuthService);
-    auth.logout();
-    fixture.detectChanges();
-    const link = fixture.nativeElement.querySelector('.statusbar__link') as HTMLElement;
-    expect(link).toBeTruthy();
-    expect(link.textContent).toContain('login');
-  });
-
-  it('should show username when authenticated', async () => {
-    const { fixture } = await setup();
-    const auth = TestBed.inject(AuthService);
-    (auth as any).currentUser.set({ id: 1, username: 'test', email: 'test@user.com', token: 't' });
-    fixture.detectChanges();
-    const link = fixture.nativeElement.querySelector('.statusbar__link');
-    expect(link).toBeFalsy();
-    expect(fixture.nativeElement.textContent).toContain('user:');
-    expect(fixture.nativeElement.textContent).toContain('test');
   });
 
   it('should show cart item count and total', async () => {

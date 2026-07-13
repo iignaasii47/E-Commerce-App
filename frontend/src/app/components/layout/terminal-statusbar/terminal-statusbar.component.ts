@@ -1,13 +1,12 @@
 import { Component, inject } from '@angular/core';
-import { Router, RouterLink, NavigationEnd } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs';
-import { CartService, AuthService } from '../../../services';
+import { CartService } from '../../../services';
 
 @Component({
   selector: 'app-terminal-statusbar',
   standalone: true,
-  imports: [RouterLink],
   template: `
     <div class="statusbar">
       <span class="statusbar__left">
@@ -16,15 +15,6 @@ import { CartService, AuthService } from '../../../services';
       </span>
       <span class="statusbar__breadcrumb">{{ currentRoute() }}</span>
       <span class="statusbar__right">
-        @if (auth.isLoggedIn()) {
-          <span class="statusbar__item">
-            <span class="status-label">user:</span>{{ auth.username() }}
-          </span>
-        } @else {
-          <a class="statusbar__item statusbar__link" routerLink="/login">
-            [login]
-          </a>
-        }
         <span class="statusbar__item">
           <span class="status-label">cart:</span>{{ cart.itemCount() }} items (\${{ cart.total().toFixed(2) }})
         </span>
@@ -84,15 +74,6 @@ import { CartService, AuthService } from '../../../services';
       color: var(--text-primary);
     }
 
-    .statusbar__link {
-      color: var(--accent-cyan);
-      cursor: pointer;
-
-      &:hover {
-        color: var(--accent-green);
-      }
-    }
-
     .status-label {
       color: var(--text-muted);
       margin-right: 4px;
@@ -101,7 +82,6 @@ import { CartService, AuthService } from '../../../services';
 })
 export class TerminalStatusbarComponent {
   readonly cart = inject(CartService);
-  readonly auth = inject(AuthService);
 
   private readonly router = inject(Router);
 

@@ -1,9 +1,11 @@
 import { Component, inject } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../services';
 
 @Component({
   selector: 'app-terminal-titlebar',
   standalone: true,
+  imports: [RouterLink],
   template: `
     <div class="titlebar">
       <div class="titlebar__dots">
@@ -14,6 +16,11 @@ import { AuthService } from '../../../services';
       <span class="titlebar__title">term-shop — zsh</span>
       <div class="titlebar__right">
         <span class="titlebar__user">{{ auth.username() }}&#64;term-shop</span>
+        @if (auth.isLoggedIn()) {
+          <a class="titlebar__action" (click)="onLogout()">[logout]</a>
+        } @else {
+          <a class="titlebar__action" routerLink="/login">[login]</a>
+        }
       </div>
     </div>
   `,
@@ -53,6 +60,9 @@ import { AuthService } from '../../../services';
     }
 
     .titlebar__right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
       margin-left: auto;
     }
 
@@ -60,8 +70,24 @@ import { AuthService } from '../../../services';
       font-size: 11px;
       color: var(--text-muted);
     }
+
+    .titlebar__action {
+      font-size: 11px;
+      color: var(--accent-cyan);
+      cursor: pointer;
+
+      &:hover {
+        color: var(--accent-green);
+      }
+    }
   `,
 })
 export class TerminalTitlebarComponent {
   readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+
+  onLogout(): void {
+    this.auth.logout();
+    this.router.navigate(['/']);
+  }
 }

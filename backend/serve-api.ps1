@@ -1,0 +1,1 @@
+Start-Process powershell -ArgumentList '-NoExit', '-Command', "./mvnw.cmd spring-boot:run"
