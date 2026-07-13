@@ -32,20 +32,13 @@ describe('HomeComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('terminal-based commerce interface');
   });
 
-  it('should show login link when not logged in', async () => {
+  it('should show guest username when not logged in', async () => {
     const { fixture } = await setup();
     const auth = TestBed.inject(AuthService);
     auth.logout();
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('sign in');
-  });
-
-  it('should hide login link when logged in', async () => {
-    const { fixture } = await setup();
-    const auth = TestBed.inject(AuthService);
-    (auth as any).currentUser.set({ id: 1, username: 'user', email: 'user@test.com', token: 't' });
-    fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).not.toContain('sign in');
+    const sessionRow = fixture.nativeElement.querySelector('.info-grid') as HTMLElement;
+    expect(sessionRow.textContent).toContain('guest@term-shop');
   });
 
   it('should show username when logged in', async () => {
@@ -57,19 +50,10 @@ describe('HomeComponent', () => {
     expect(sessionRow.textContent).toContain('testuser@term-shop');
   });
 
-  it('should show guest username when not logged in', async () => {
-    const { fixture } = await setup();
-    const auth = TestBed.inject(AuthService);
-    auth.logout();
-    fixture.detectChanges();
-    const sessionRow = fixture.nativeElement.querySelector('.info-grid') as HTMLElement;
-    expect(sessionRow.textContent).toContain('guest@term-shop');
-  });
-
   it('should show quick action items', async () => {
     const { fixture } = await setup();
     const items = fixture.nativeElement.querySelectorAll('.action-item');
-    expect(items.length).toBe(4);
+    expect(items.length).toBe(2);
   });
 
   it('should show system info section', async () => {

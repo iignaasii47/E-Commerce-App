@@ -15,20 +15,10 @@ import { AuthService } from '../../services';
       <div class="quick-actions">
         <p class="section-label">// quick actions</p>
         <div class="action-grid">
-          <a routerLink="/products" class="action-item">
-            <span class="action-cmd">$ ls</span>
-            <span class="action-desc">browse products</span>
-          </a>
           <a routerLink="/cart" class="action-item">
             <span class="action-cmd">$ cat cart</span>
             <span class="action-desc">view cart</span>
           </a>
-          @if (!auth.isLoggedIn()) {
-            <a routerLink="/login" class="action-item">
-              <span class="action-cmd">$ su -</span>
-              <span class="action-desc">sign in</span>
-            </a>
-          }
           <a routerLink="/products" class="action-item">
             <span class="action-cmd">$ grep .</span>
             <span class="action-desc">search catalog</span>
@@ -159,9 +149,9 @@ export class HomeComponent {
   readonly auth = inject(AuthService);
 
   readonly asciiArt = String.raw`
-  _____ _____ ____  __  __ ___ _   _    _    _     
- |_   _| ____|  _ \|  \/  |_ _| \ | |  / \  | |    
-   | | |  _| | |_) | |\/| || ||  \| | / _ \ | |    
-   | | | |___|  _ <| |  | || || |\  |/ ___ \| |___ 
-   |_| |_____|_| \_\_|  |_|___|_| \_/_/   \_\_____|`;
+ __        _______ ____ ____  _   _  ___  ____    _____ _   _ ___ 
+ \ \      / / ____| __ ) ___|| | | |/ _ \|  _ \  |_   _| | | |_ _|
+  \ \ /\ / /|  _| |  _ \___ \| |_| | | | | |_) |   | | | | | || | 
+   \ V  V / | |___| |_) |__) |  _  | |_| |  __/    | | | |_| || | 
+    \_/\_/  |_____|____/____/|_| |_|\___/|_|       |_|  \___/|___|`;
 }
