@@ -8,13 +8,7 @@ import { AuthService } from '../../services';
   imports: [RouterLink],
   template: `
     <div class="page-container home">
-      <pre class="ascii-banner">
- _____ _____ ____  __  __ ___ _   _    _    _
-|_   _| ____|  _ \|  \/  |_ _| \ | |  / \  | |
-  | | |  _| | |_) | |\/| || ||  \| | / _ \ | |
-  | | | |___|  __/| |  | || || |\  |/ ___ \| |___
-  |_| |_____|_|   |_|  |_|___|_| \_/_/   \_\_____|
-      </pre>
+      <pre class="ascii-banner">{{ asciiArt }}</pre>
 
       <p class="tagline">> terminal-based commerce interface v1.0.0</p>
 
@@ -163,4 +157,11 @@ import { AuthService } from '../../services';
 })
 export class HomeComponent {
   readonly auth = inject(AuthService);
+
+  readonly asciiArt = String.raw`
+ _____ _____ ____  __  __ ___ _   _    _    _
+|_   _| ____|  _ \|  \/  |_ _| \ | |  / \  | |
+  | | |  _| | |_) | |\/| || ||  \| | / _ \ | |
+  | | | |___|  __/| |  | || || |\  |/ ___ \| |___
+  |_| |_____|_|   |_|  |_|___|_| \_/_/   \_\_____|`;
 }

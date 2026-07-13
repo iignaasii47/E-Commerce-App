@@ -2,7 +2,7 @@ import { Component, inject, signal, computed } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
-import { ProductService, SearchService } from '../../services';
+import { ProductService } from '../../services';
 import { TerminalCardComponent } from '../../components/shared/terminal-card/terminal-card.component';
 import { TerminalInputComponent } from '../../components/shared/terminal-input/terminal-input.component';
 

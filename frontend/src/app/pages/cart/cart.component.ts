@@ -62,7 +62,7 @@ import { TerminalButtonComponent } from '../../components/shared/terminal-button
  / ___ \
 | |   | |  Your cart is empty
 | |___| |  Add some items first
- \_____/   $ cd products/
+  \\_____/   $ cd products/
           </pre>
         </div>
       }

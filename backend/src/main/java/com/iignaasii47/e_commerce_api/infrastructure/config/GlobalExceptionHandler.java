@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Map;
 
 @RestControllerAdvice
@@ -21,7 +22,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleDuplicateUser(DuplicateUserException ex) {
         log.warn("Duplicate user: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
-                "timestamp", LocalDateTime.now(),
+                "timestamp", LocalDateTime.now(ZoneOffset.UTC),
                 "status", 409,
                 "error", "Conflict",
                 "message", ex.getMessage()
@@ -32,7 +33,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleGeneric(Exception ex) {
         log.error("Unexpected error", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-                "timestamp", LocalDateTime.now(),
+                "timestamp", LocalDateTime.now(ZoneOffset.UTC),
                 "status", 500,
                 "error", "Internal Server Error",
                 "message", "An unexpected error occurred"

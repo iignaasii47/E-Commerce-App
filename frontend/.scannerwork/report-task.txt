@@ -2,5 +2,5 @@ projectKey=ecommerce-web
 serverUrl=http://localhost:9000
 serverVersion=26.6.0.123539
 dashboardUrl=http://localhost:9000/dashboard?id=ecommerce-web
-ceTaskId=707986a3-6aa5-4261-aeef-190a72edcd44
-ceTaskUrl=http://localhost:9000/api/ce/task?id=707986a3-6aa5-4261-aeef-190a72edcd44
+ceTaskId=0121e3a8-119a-481a-919b-c1bd32eb76cf
+ceTaskUrl=http://localhost:9000/api/ce/task?id=0121e3a8-119a-481a-919b-c1bd32eb76cf

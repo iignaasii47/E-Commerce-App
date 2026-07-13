@@ -7,13 +7,7 @@ import { RouterLink } from '@angular/router';
   imports: [RouterLink],
   template: `
     <div class="page-container not-found">
-      <pre class="error-ascii">
- _____ ____  ____   ___  ____
-| ____|  _ \|  _ \ / _ \|  _ \
-|  _| | |_) | |_) | | | | | | |
-| |___|  _ <|  _ <| |_| | |_| |
-|_____|_| \_\_| \_\\___/|____/
-      </pre>
+      <pre class="error-ascii">{{ asciiArt }}</pre>
       <p class="error-code">404</p>
       <p class="error-msg">$ command not found: {{ currentPath }}</p>
       <a routerLink="/" class="back-link">cd ~</a>
@@ -59,5 +53,12 @@ import { RouterLink } from '@angular/router';
   `,
 })
 export class NotFoundComponent {
-  currentPath = window.location.pathname;
+  currentPath = globalThis.location.pathname;
+
+  readonly asciiArt = String.raw`
+ _____ ____  ____   ___  ____
+| ____|  _ \|  _ \ / _ \|  _ \
+|  _| | |_) | |_) | | | | | | |
+| |___|  _ <|  _ <| |_| | |_| |
+|_____|_| \_\_| \_\\___/|____/`;
 }
