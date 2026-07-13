@@ -39,6 +39,9 @@ import { TerminalButtonComponent } from '../../../components/shared/terminal-but
           </div>
 
           <div class="auth-actions">
+            <app-terminal-button variant="purple" type="button" [disabled]="loading()" (click)="onLoginAsGuest()">
+              login as guest
+            </app-terminal-button>
             <app-terminal-button variant="primary" type="submit" [disabled]="loading()">
               {{ loading() ? 'authenticating...' : 'login' }}
             </app-terminal-button>
@@ -95,7 +98,7 @@ import { TerminalButtonComponent } from '../../../components/shared/terminal-but
 
     .auth-actions {
       display: flex;
-      justify-content: flex-end;
+      justify-content: space-between;
     }
 
     .auth-footer {
@@ -124,6 +127,12 @@ export class LoginComponent {
   readonly password = signal('');
   readonly loading = signal(false);
   readonly errorMessage = signal('');
+
+  onLoginAsGuest(): void {
+    this.email.set('guest@webshop.tui');
+    this.password.set('guest');
+    this.onSubmit(new Event('submit'));
+  }
 
   onSubmit(event: Event): void {
     event.preventDefault();

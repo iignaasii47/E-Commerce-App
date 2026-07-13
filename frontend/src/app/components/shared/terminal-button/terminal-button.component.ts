@@ -77,10 +77,23 @@ import { Component, input } from '@angular/core';
         border-color: var(--border);
       }
     }
+
+    .t-btn--purple {
+      border-color: #a855f7;
+      color: #a855f7;
+
+      .t-btn__prefix {
+        color: #a855f7;
+      }
+
+      &:hover:not(:disabled) {
+        background: rgba(168, 85, 247, 0.1);
+      }
+    }
   `,
 })
 export class TerminalButtonComponent {
-  variant = input<'default' | 'primary' | 'danger' | 'ghost'>('default');
+  variant = input<'default' | 'primary' | 'danger' | 'ghost' | 'purple'>('default');
   disabled = input(false);
   type = input<'button' | 'submit' | 'reset'>('button');
 }
