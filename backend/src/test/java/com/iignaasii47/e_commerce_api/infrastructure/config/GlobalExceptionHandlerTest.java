@@ -1,6 +1,7 @@
 package com.iignaasii47.e_commerce_api.infrastructure.config;
 
 import com.iignaasii47.e_commerce_api.domain.exception.DuplicateUserException;
+import com.iignaasii47.e_commerce_api.domain.exception.InvalidCredentialsException;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,20 @@ class GlobalExceptionHandlerTest {
                 .containsEntry("status", 409)
                 .containsEntry("error", "Conflict")
                 .containsEntry("message", "user exists")
+                .containsKey("timestamp");
+    }
+
+    @Test
+    void shouldReturn401ForInvalidCredentials() {
+        InvalidCredentialsException exception = new InvalidCredentialsException("Invalid username or password");
+
+        ResponseEntity<Map<String, Object>> response = handler.handleInvalidCredentials(exception);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(response.getBody()).isNotNull()
+                .containsEntry("status", 401)
+                .containsEntry("error", "Unauthorized")
+                .containsEntry("message", "Invalid username or password")
                 .containsKey("timestamp");
     }
 

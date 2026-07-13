@@ -1,6 +1,7 @@
 package com.iignaasii47.e_commerce_api.infrastructure.config;
 
 import com.iignaasii47.e_commerce_api.domain.exception.DuplicateUserException;
+import com.iignaasii47.e_commerce_api.domain.exception.InvalidCredentialsException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +32,17 @@ public class GlobalExceptionHandler {
                 TIMESTAMP, LocalDateTime.now(ZoneOffset.UTC),
                 STATUS, 409,
                 ERROR, "Conflict",
+                MESSAGE, ex.getMessage()
+        ));
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidCredentials(InvalidCredentialsException ex) {
+        log.warn("Invalid credentials: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                TIMESTAMP, LocalDateTime.now(ZoneOffset.UTC),
+                STATUS, 401,
+                ERROR, "Unauthorized",
                 MESSAGE, ex.getMessage()
         ));
     }

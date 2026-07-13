@@ -1,7 +1,10 @@
 package com.iignaasii47.e_commerce_api.application.service;
 
+import com.iignaasii47.e_commerce_api.domain.exception.InvalidCredentialsException;
+import com.iignaasii47.e_commerce_api.domain.model.Authentication;
 import com.iignaasii47.e_commerce_api.domain.model.User;
 import com.iignaasii47.e_commerce_api.domain.port.out.PasswordEncryption;
+import com.iignaasii47.e_commerce_api.domain.port.out.TokenService;
 import com.iignaasii47.e_commerce_api.domain.port.out.UserRepository;
 import com.iignaasii47.e_commerce_api.domain.service.UserRegistrationService;
 
@@ -14,8 +17,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -33,6 +38,9 @@ class UserUseCaseServiceTest {
 
     @Mock
     private UserRegistrationService userRegistrationService;
+
+    @Mock
+    private TokenService tokenService;
 
     @InjectMocks
     private UserUseCaseService userUseCaseService;
@@ -72,6 +80,42 @@ class UserUseCaseServiceTest {
 
         assertThat(result.getId()).isEqualTo(42L);
         assertThat(result.getUsername()).isEqualTo("jane");
+    }
+
+    @Test
+    void shouldLoginAndReturnToken() {
+        User user = new User(1L, "john", "john@example.com", "encrypted", FIXED_TIME);
+        when(userRepository.findByUsername("john")).thenReturn(Optional.of(user));
+        when(passwordEncryption.matches("secret123", "encrypted")).thenReturn(true);
+        when(tokenService.generateToken(1L, "john")).thenReturn("jwt-token");
+
+        Authentication result = userUseCaseService.login("john", "secret123");
+
+        assertThat(result.getUser().getId()).isEqualTo(1L);
+        assertThat(result.getUser().getUsername()).isEqualTo("john");
+        assertThat(result.getToken()).isEqualTo("jwt-token");
+
+        verify(tokenService).generateToken(1L, "john");
+    }
+
+    @Test
+    void shouldThrowWhenUsernameNotFound() {
+        when(userRepository.findByUsername("unknown")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userUseCaseService.login("unknown", "pwd"))
+                .isInstanceOf(InvalidCredentialsException.class)
+                .hasMessage("Invalid username or password");
+    }
+
+    @Test
+    void shouldThrowWhenPasswordDoesNotMatch() {
+        User user = new User(1L, "john", "john@example.com", "encrypted", FIXED_TIME);
+        when(userRepository.findByUsername("john")).thenReturn(Optional.of(user));
+        when(passwordEncryption.matches("wrong", "encrypted")).thenReturn(false);
+
+        assertThatThrownBy(() -> userUseCaseService.login("john", "wrong"))
+                .isInstanceOf(InvalidCredentialsException.class)
+                .hasMessage("Invalid username or password");
     }
 
 }

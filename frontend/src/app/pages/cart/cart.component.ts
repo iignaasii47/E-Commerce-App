@@ -59,10 +59,10 @@ import { TerminalButtonComponent } from '../../components/shared/terminal-button
         <div class="empty-cart">
           <pre class="empty-ascii">
   _____
- / ___ \
+ / ___ \\
 | |   | |  Your cart is empty
 | |___| |  Add some items first
-  \\_____/   $ cd products/
+ \\_____/   $ cd products/
           </pre>
         </div>
       }
@@ -214,6 +214,8 @@ import { TerminalButtonComponent } from '../../components/shared/terminal-button
       color: var(--text-muted);
       font-size: 12px;
       line-height: 1.5;
+      text-align: left;
+      display: inline-block;
     }
   `,
 })

@@ -2,6 +2,8 @@ package com.iignaasii47.e_commerce_api.controller;
 
 import com.iignaasii47.e_commerce_api.application.port.in.UserUseCase;
 import com.iignaasii47.e_commerce_api.domain.exception.DuplicateUserException;
+import com.iignaasii47.e_commerce_api.domain.exception.InvalidCredentialsException;
+import com.iignaasii47.e_commerce_api.domain.model.Authentication;
 import com.iignaasii47.e_commerce_api.domain.model.User;
 
 import org.junit.jupiter.api.Test;
@@ -17,6 +19,7 @@ import java.time.LocalDateTime;
 import java.time.Month;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -94,6 +97,62 @@ class UserControllerTest {
                         .content(requestBody))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value("Username 'john' is already taken"));
+    }
+
+    @Test
+    void shouldLoginAndReturn200WithToken() throws Exception {
+        User user = new User(1L, "john", "john@example.com", "encrypted", FIXED_TIME);
+        Authentication auth = new Authentication(user, "jwt-token-value");
+        when(userUseCase.login("john", "secret123")).thenReturn(auth);
+
+        String requestBody = """
+                {
+                    "username": "john",
+                    "password": "secret123"
+                }
+                """;
+
+        mockMvc.perform(post("/api/users/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.username").value("john"))
+                .andExpect(jsonPath("$.email").value("john@example.com"))
+                .andExpect(jsonPath("$.token").value("jwt-token-value"));
+    }
+
+    @Test
+    void shouldReturn401WhenInvalidCredentials() throws Exception {
+        when(userUseCase.login(eq("john"), eq("wrong"))).thenThrow(new InvalidCredentialsException("Invalid username or password"));
+
+        String requestBody = """
+                {
+                    "username": "john",
+                    "password": "wrong"
+                }
+                """;
+
+        mockMvc.perform(post("/api/users/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value("Invalid username or password"));
+    }
+
+    @Test
+    void shouldReturn400WhenLoginRequestMissingFields() throws Exception {
+        String requestBody = """
+                {
+                    "username": "",
+                    "password": "secret123"
+                }
+                """;
+
+        mockMvc.perform(post("/api/users/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isBadRequest());
     }
 
 }

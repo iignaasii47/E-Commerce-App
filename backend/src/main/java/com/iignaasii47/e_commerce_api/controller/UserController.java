@@ -2,6 +2,8 @@ package com.iignaasii47.e_commerce_api.controller;
 
 import com.iignaasii47.e_commerce_api.application.port.in.UserUseCase;
 import com.iignaasii47.e_commerce_api.controller.dto.CreateUserRequest;
+import com.iignaasii47.e_commerce_api.controller.dto.LoginRequest;
+import com.iignaasii47.e_commerce_api.controller.dto.LoginResponse;
 import com.iignaasii47.e_commerce_api.controller.dto.UserResponse;
 import com.iignaasii47.e_commerce_api.domain.model.User;
 
@@ -30,6 +32,11 @@ public class UserController {
         User user = new User(null, request.getUsername(), request.getEmail(), request.getPassword(), null);
         User created = userUseCase.register(user);
         return UserResponse.from(created);
+    }
+
+    @PostMapping("/login")
+    public LoginResponse login(@Valid @RequestBody LoginRequest request) {
+        return LoginResponse.from(userUseCase.login(request.getUsername(), request.getPassword()));
     }
 
 }
