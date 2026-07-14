@@ -187,7 +187,7 @@ describe('ProductDetailComponent', () => {
     fixture.detectChanges();
 
     fixture.componentInstance.addToCart(product);
-    expect(addSpy).toHaveBeenCalledWith(product, 2);
+    expect(addSpy).toHaveBeenCalledWith(1, 2);
     expect(successSpy).toHaveBeenCalledWith('Mechanical Keyboard MK-750 added to cart');
   });
 

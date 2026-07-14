@@ -282,7 +282,7 @@ export class ProductDetailComponent {
   }
 
   addToCart(product: { id: number; name: string; price: number; stock: number }): void {
-    this.cartService.addToCart(product as any, this.quantity());
+    this.cartService.addToCart(product.id, this.quantity());
     this.notifications.success(`${product.name} added to cart`);
   }
 }

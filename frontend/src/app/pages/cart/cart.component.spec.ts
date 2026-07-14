@@ -1,18 +1,33 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { CartComponent } from './cart.component';
 import { CartService, NotificationService } from '../../services';
+import { environment } from '../../../environments/environment';
+
+const apiItem = (overrides: Partial<{ id: number; productId: number; productName: string; unitPrice: number; quantity: number; subtotal: number }> = {}) => ({
+  id: 1,
+  productId: 1,
+  productName: 'Test Item',
+  unitPrice: 29.99,
+  quantity: 1,
+  subtotal: 29.99,
+  ...overrides,
+});
 
 describe('CartComponent', () => {
   async function setup() {
     await TestBed.configureTestingModule({
       imports: [CartComponent],
-      providers: [provideRouter([])],
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
+    const httpMock = TestBed.inject(HttpTestingController);
     const fixture = TestBed.createComponent(CartComponent);
+    httpMock.expectOne(environment.apiUrl + '/api/cart').flush([]);
     const component = fixture.componentInstance;
     fixture.detectChanges();
-    return { fixture, component };
+    return { fixture, component, httpMock };
   }
 
   it('should create', async () => {
@@ -35,13 +50,10 @@ describe('CartComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('0 items in cart');
   });
 
-  it('should show cart items when products are added', async () => {
+  it('should show cart items when added', async () => {
     const { fixture } = await setup();
     const cart = TestBed.inject(CartService);
-    cart.addToCart({
-      id: 1, name: 'Test Item', description: '', price: 29.99,
-      category: 'accessories', image: '', stock: 10, rating: 4,
-    });
+    cart.items.set([apiItem()]);
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.empty-cart')).toBeFalsy();
     expect(fixture.nativeElement.querySelector('.cart-list')).toBeTruthy();
@@ -52,10 +64,7 @@ describe('CartComponent', () => {
   it('should show subtotal and total', async () => {
     const { fixture } = await setup();
     const cart = TestBed.inject(CartService);
-    cart.addToCart({
-      id: 1, name: 'Item', description: '', price: 49.99,
-      category: 'peripherals', image: '', stock: 5, rating: 3,
-    });
+    cart.items.set([apiItem({ unitPrice: 49.99, subtotal: 49.99 })]);
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('subtotal:');
     expect(fixture.nativeElement.textContent).toContain('$49.99');
@@ -65,10 +74,7 @@ describe('CartComponent', () => {
   it('should show quantity controls', async () => {
     const { fixture } = await setup();
     const cart = TestBed.inject(CartService);
-    cart.addToCart({
-      id: 1, name: 'Item', description: '', price: 10,
-      category: 'accessories', image: '', stock: 10, rating: 4,
-    });
+    cart.items.set([apiItem()]);
     fixture.detectChanges();
     const qtyBtns = fixture.nativeElement.querySelectorAll('.qty-btn');
     expect(qtyBtns.length).toBe(2);
@@ -79,10 +85,7 @@ describe('CartComponent', () => {
   it('should show remove button for each item', async () => {
     const { fixture } = await setup();
     const cart = TestBed.inject(CartService);
-    cart.addToCart({
-      id: 1, name: 'Item', description: '', price: 10,
-      category: 'accessories', image: '', stock: 10, rating: 4,
-    });
+    cart.items.set([apiItem()]);
     fixture.detectChanges();
     const removeBtn = fixture.nativeElement.querySelector('.remove-btn') as HTMLElement;
     expect(removeBtn).toBeTruthy();
@@ -92,55 +95,43 @@ describe('CartComponent', () => {
   it('should update quantity via - button', async () => {
     const { fixture } = await setup();
     const cart = TestBed.inject(CartService);
-    cart.addToCart({
-      id: 1, name: 'Item', description: '', price: 10,
-      category: 'accessories', image: '', stock: 10, rating: 4,
-    }, 3);
+    const updateSpy = vi.spyOn(cart, 'updateQuantity');
+    cart.items.set([apiItem({ quantity: 3 })]);
     fixture.detectChanges();
     const minusBtn = fixture.nativeElement.querySelectorAll('.qty-btn')[0] as HTMLButtonElement;
     minusBtn.click();
-    fixture.detectChanges();
-    expect(cart.items()[0].quantity).toBe(2);
+    expect(updateSpy).toHaveBeenCalledWith(1, 1, 2);
   });
 
   it('should update quantity via + button', async () => {
     const { fixture } = await setup();
     const cart = TestBed.inject(CartService);
-    cart.addToCart({
-      id: 1, name: 'Item', description: '', price: 10,
-      category: 'accessories', image: '', stock: 10, rating: 4,
-    });
+    const updateSpy = vi.spyOn(cart, 'updateQuantity');
+    cart.items.set([apiItem({ quantity: 1 })]);
     fixture.detectChanges();
     const plusBtn = fixture.nativeElement.querySelectorAll('.qty-btn')[1] as HTMLButtonElement;
     plusBtn.click();
-    fixture.detectChanges();
-    expect(cart.items()[0].quantity).toBe(2);
+    expect(updateSpy).toHaveBeenCalledWith(1, 1, 2);
   });
 
   it('should remove item when clicking remove button', async () => {
     const { fixture } = await setup();
     const cart = TestBed.inject(CartService);
     const notifications = TestBed.inject(NotificationService);
+    const removeSpy = vi.spyOn(cart, 'removeFromCart');
     const infoSpy = vi.spyOn(notifications, 'info');
-    cart.addToCart({
-      id: 1, name: 'Removable', description: '', price: 10,
-      category: 'accessories', image: '', stock: 10, rating: 4,
-    });
+    cart.items.set([apiItem()]);
     fixture.detectChanges();
     const removeBtn = fixture.nativeElement.querySelector('.remove-btn') as HTMLButtonElement;
     removeBtn.click();
-    fixture.detectChanges();
-    expect(cart.items().length).toBe(0);
-    expect(infoSpy).toHaveBeenCalledWith('Removable removed from cart');
+    expect(removeSpy).toHaveBeenCalledWith(1);
+    expect(infoSpy).toHaveBeenCalledWith('Test Item removed from cart');
   });
 
   it('should show checkout button and continue link when cart has items', async () => {
     const { fixture } = await setup();
     const cart = TestBed.inject(CartService);
-    cart.addToCart({
-      id: 1, name: 'Item', description: '', price: 10,
-      category: 'accessories', image: '', stock: 10, rating: 4,
-    });
+    cart.items.set([apiItem()]);
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.continue-link')).toBeTruthy();
     expect(fixture.nativeElement.querySelector('app-terminal-button')).toBeTruthy();

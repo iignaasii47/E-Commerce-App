@@ -1,24 +1,28 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { CheckoutComponent } from './checkout.component';
 import { CartService, AuthService, NotificationService } from '../../services';
+import { environment } from '../../../environments/environment';
+
+const apiItem = () => ({
+  id: 1, productId: 1, productName: 'Test Item', unitPrice: 29.99, quantity: 1, subtotal: 29.99,
+});
 
 describe('CheckoutComponent', () => {
   async function setup() {
     await TestBed.configureTestingModule({
       imports: [CheckoutComponent],
-      providers: [provideRouter([])],
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
+    const httpMock = TestBed.inject(HttpTestingController);
     const fixture = TestBed.createComponent(CheckoutComponent);
+    httpMock.expectOne(environment.apiUrl + '/api/cart').flush([]);
     const component = fixture.componentInstance;
     fixture.detectChanges();
-    return { fixture, component };
+    return { fixture, component, httpMock };
   }
-
-  const mockProduct = () => ({
-    id: 1, name: 'Test Item', description: '', price: 29.99,
-    category: 'accessories', image: '', stock: 10, rating: 4,
-  });
 
   it('should create', async () => {
     const { component } = await setup();
@@ -34,7 +38,7 @@ describe('CheckoutComponent', () => {
   it('should show checkout form when cart has items', async () => {
     const { fixture } = await setup();
     const cart = TestBed.inject(CartService);
-    cart.addToCart(mockProduct());
+    cart.items.set([apiItem()]);
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.checkout-layout')).toBeTruthy();
     expect(fixture.nativeElement.textContent).toContain('Test Item');
@@ -44,7 +48,7 @@ describe('CheckoutComponent', () => {
   it('should show order summary', async () => {
     const { fixture } = await setup();
     const cart = TestBed.inject(CartService);
-    cart.addToCart(mockProduct());
+    cart.items.set([apiItem()]);
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('order summary');
     expect(fixture.nativeElement.textContent).toContain('total:');
@@ -53,7 +57,7 @@ describe('CheckoutComponent', () => {
   it('should have shipping address fields', async () => {
     const { fixture } = await setup();
     const cart = TestBed.inject(CartService);
-    cart.addToCart(mockProduct());
+    cart.items.set([apiItem()]);
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('shipping info');
     expect(fixture.nativeElement.textContent).toContain('address');
@@ -64,7 +68,7 @@ describe('CheckoutComponent', () => {
   it('should have payment fields', async () => {
     const { fixture } = await setup();
     const cart = TestBed.inject(CartService);
-    cart.addToCart(mockProduct());
+    cart.items.set([apiItem()]);
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('payment (mock)');
     expect(fixture.nativeElement.textContent).toContain('card');
@@ -74,7 +78,7 @@ describe('CheckoutComponent', () => {
   it('should show error when placing order without login', async () => {
     const { fixture } = await setup();
     const cart = TestBed.inject(CartService);
-    cart.addToCart(mockProduct());
+    cart.items.set([apiItem()]);
     const auth = TestBed.inject(AuthService);
     auth.logout();
     const notifications = TestBed.inject(NotificationService);
@@ -88,7 +92,7 @@ describe('CheckoutComponent', () => {
   it('should place order successfully when logged in', async () => {
     const { fixture } = await setup();
     const cart = TestBed.inject(CartService);
-    cart.addToCart(mockProduct());
+    cart.items.set([apiItem()]);
     const auth = TestBed.inject(AuthService);
     (auth as any).currentUser.set({ id: 1, username: 'user', email: 'user@test.com', token: 't' });
     const notifications = TestBed.inject(NotificationService);
@@ -111,7 +115,7 @@ describe('CheckoutComponent', () => {
   it('should have place-order button when cart has items', async () => {
     const { fixture } = await setup();
     const cart = TestBed.inject(CartService);
-    cart.addToCart(mockProduct());
+    cart.items.set([apiItem()]);
     fixture.detectChanges();
     const btn = fixture.nativeElement.querySelector('app-terminal-button') as HTMLElement;
     expect(btn).toBeTruthy();
@@ -121,7 +125,7 @@ describe('CheckoutComponent', () => {
   it('should update signals through template input events', async () => {
     const { fixture } = await setup();
     const cart = TestBed.inject(CartService);
-    cart.addToCart(mockProduct());
+    cart.items.set([apiItem()]);
     fixture.detectChanges();
     await fixture.whenStable();
 
@@ -148,7 +152,7 @@ describe('CheckoutComponent', () => {
   it('should call placeOrder when button is clicked', async () => {
     const { fixture } = await setup();
     const cart = TestBed.inject(CartService);
-    cart.addToCart(mockProduct());
+    cart.items.set([apiItem()]);
     const notifications = TestBed.inject(NotificationService);
     const infoSpy = vi.spyOn(notifications, 'success');
     const auth = TestBed.inject(AuthService);

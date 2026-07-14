@@ -57,10 +57,10 @@ import { TerminalButtonComponent } from '../../components/shared/terminal-button
           <div class="checkout-summary">
             <p class="section-label">// order summary</p>
             <div class="summary-items">
-              @for (item of cart.items(); track item.product.id) {
+              @for (item of cart.items(); track item.id) {
                 <div class="summary-item">
-                  <span>{{ item.quantity }}x {{ item.product.name }}</span>
-                  <span>\${{ (item.product.price * item.quantity).toFixed(2) }}</span>
+                  <span>{{ item.quantity }}x {{ item.productName }}</span>
+                  <span>\${{ (item.unitPrice * item.quantity).toFixed(2) }}</span>
                 </div>
               }
             </div>

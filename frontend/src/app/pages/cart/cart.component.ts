@@ -14,19 +14,19 @@ import { TerminalButtonComponent } from '../../components/shared/terminal-button
 
       @if (cart.items().length > 0) {
         <div class="cart-list">
-          @for (item of cart.items(); track item.product.id) {
+          @for (item of cart.items(); track item.id) {
             <div class="cart-item">
               <div class="cart-item__info">
-                <span class="cart-item__id">#{{ item.product.id }}</span>
-                <span class="cart-item__name">{{ item.product.name }}</span>
+                <span class="cart-item__id">#{{ item.productId }}</span>
+                <span class="cart-item__name">{{ item.productName }}</span>
               </div>
               <div class="cart-item__controls">
-                <button class="qty-btn" (click)="updateQty(item.product.id, item.quantity - 1)">-</button>
+                <button class="qty-btn" (click)="updateQty(item, item.quantity - 1)">-</button>
                 <span class="qty-val">{{ item.quantity }}</span>
-                <button class="qty-btn" (click)="updateQty(item.product.id, item.quantity + 1)">+</button>
+                <button class="qty-btn" (click)="updateQty(item, item.quantity + 1)">+</button>
               </div>
-              <span class="cart-item__price">\${{ (item.product.price * item.quantity).toFixed(2) }}</span>
-              <button class="remove-btn" (click)="remove(item.product.id, item.product.name)">
+              <span class="cart-item__price">\${{ (item.unitPrice * item.quantity).toFixed(2) }}</span>
+              <button class="remove-btn" (click)="remove(item)">
                 [rm]
               </button>
             </div>
@@ -223,13 +223,13 @@ export class CartComponent {
   readonly cart = inject(CartService);
   private readonly notifications = inject(NotificationService);
 
-  updateQty(productId: number, qty: number): void {
-    this.cart.updateQuantity(productId, qty);
+  updateQty(item: { id: number; productId: number; quantity: number; productName: string }, qty: number): void {
+    this.cart.updateQuantity(item.id, item.productId, qty);
   }
 
-  remove(productId: number, name: string): void {
-    this.cart.removeFromCart(productId);
-    this.notifications.info(`${name} removed from cart`);
+  remove(item: { id: number; productName: string }): void {
+    this.cart.removeFromCart(item.id);
+    this.notifications.info(`${item.productName} removed from cart`);
   }
 
   checkout(): void {
