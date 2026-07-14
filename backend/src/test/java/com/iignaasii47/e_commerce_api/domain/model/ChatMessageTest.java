@@ -83,4 +83,38 @@ class ChatMessageTest {
         assertThat(msg.toString()).contains("user", "hello");
     }
 
+    @Test
+    void shouldCreateToolMessage() {
+        ChatMessage msg = ChatMessage.tool("call_123", "tool result");
+
+        assertThat(msg.getRole()).isEqualTo("tool");
+        assertThat(msg.getContent()).isEqualTo("tool result");
+        assertThat(msg.getToolCallId()).isEqualTo("call_123");
+    }
+
+    @Test
+    void shouldStoreToolCallIdInConstructor() {
+        ChatMessage msg = new ChatMessage("tool", "result", "call_abc");
+
+        assertThat(msg.getRole()).isEqualTo("tool");
+        assertThat(msg.getContent()).isEqualTo("result");
+        assertThat(msg.getToolCallId()).isEqualTo("call_abc");
+    }
+
+    @Test
+    void shouldEqualWhenSameToolCallId() {
+        ChatMessage msg1 = new ChatMessage("tool", "result", "call_1");
+        ChatMessage msg2 = new ChatMessage("tool", "result", "call_1");
+
+        assertThat(msg1).isEqualTo(msg2).hasSameHashCodeAs(msg2);
+    }
+
+    @Test
+    void shouldNotEqualWhenDifferentToolCallId() {
+        ChatMessage msg1 = new ChatMessage("tool", "result", "call_1");
+        ChatMessage msg2 = new ChatMessage("tool", "result", "call_2");
+
+        assertThat(msg1).isNotEqualTo(msg2);
+    }
+
 }

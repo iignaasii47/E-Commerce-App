@@ -1,7 +1,9 @@
 package com.iignaasii47.e_commerce_api.infrastructure.client;
 
 import com.iignaasii47.e_commerce_api.domain.exception.AiServiceException;
+import com.iignaasii47.e_commerce_api.domain.model.ChatAiResponse;
 import com.iignaasii47.e_commerce_api.domain.model.ChatMessage;
+import com.iignaasii47.e_commerce_api.domain.model.ChatToolCall;
 import com.iignaasii47.e_commerce_api.domain.port.out.AiClient;
 
 import org.slf4j.Logger;
@@ -14,6 +16,7 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -57,9 +60,10 @@ public class OpenRouterClient implements AiClient {
     }
 
     @Override
-    public String sendMessage(List<ChatMessage> history, String systemPrompt) {
+    public ChatAiResponse sendMessage(List<ChatMessage> history, String systemPrompt,
+                                       List<Map<String, Object>> tools) {
         String model = currentModel.get();
-        String result = trySend(model, history, systemPrompt);
+        ChatAiResponse result = trySend(model, history, systemPrompt, tools);
         if (result != null) {
             return result;
         }
@@ -69,7 +73,7 @@ public class OpenRouterClient implements AiClient {
                 continue;
             }
             log.warn("Falling back to model '{}'", fallback);
-            result = trySend(fallback, history, systemPrompt);
+            result = trySend(fallback, history, systemPrompt, tools);
             if (result != null) {
                 currentModel.set(fallback);
                 log.info("Switched sticky model to '{}'", fallback);
@@ -81,29 +85,31 @@ public class OpenRouterClient implements AiClient {
                 "All available models are currently rate-limited or unavailable. Please try again later.");
     }
 
-    private String trySend(String model, List<ChatMessage> history, String systemPrompt) {
+    private ChatAiResponse trySend(String model, List<ChatMessage> history,
+                                    String systemPrompt, List<Map<String, Object>> tools) {
         try {
-            return sendWithModel(model, history, systemPrompt);
+            return sendWithModel(model, history, systemPrompt, tools);
         } catch (AiServiceException e) {
             log.warn("Model '{}' failed: {}", model, e.getMessage());
             return null;
         }
     }
 
-    private String sendWithModel(String model, List<ChatMessage> history, String systemPrompt) {
-        List<Map<String, String>> messages = new ArrayList<>();
+    @SuppressWarnings("unchecked")
+    private ChatAiResponse sendWithModel(String model, List<ChatMessage> history,
+                                          String systemPrompt, List<Map<String, Object>> tools) {
+        List<Map<String, Object>> messages = new ArrayList<>();
         messages.add(Map.of(ROLE_KEY, "system", CONTENT_KEY, systemPrompt));
 
         for (ChatMessage msg : history) {
-            messages.add(Map.of(ROLE_KEY, msg.getRole(), CONTENT_KEY, msg.getContent()));
+            messages.add(buildMessageMap(msg));
         }
 
-        Map<String, Object> requestBody = Map.of(
-                "model", model,
-                "messages", messages
-        );
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("model", model);
+        requestBody.put("messages", messages);
+        requestBody.put("tools", tools);
 
-        @SuppressWarnings("unchecked")
         Map<String, Object> response;
         try {
             response = restClient.post()
@@ -128,25 +134,67 @@ public class OpenRouterClient implements AiClient {
             throw new AiServiceException("Empty response from AI service");
         }
 
-        @SuppressWarnings("unchecked")
         List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
         if (choices == null || choices.isEmpty()) {
             throw new AiServiceException("No choices in AI response");
         }
 
-        @SuppressWarnings("unchecked")
         Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
         if (message == null) {
             throw new AiServiceException("No message in AI response");
         }
 
         String content = (String) message.get(CONTENT_KEY);
+
+        List<Map<String, Object>> rawToolCalls = (List<Map<String, Object>>) message.get("tool_calls");
+        if (rawToolCalls != null && !rawToolCalls.isEmpty()) {
+            List<ChatToolCall> toolCalls = rawToolCalls.stream()
+                    .map(this::parseToolCall)
+                    .toList();
+            log.info("OpenRouter returned {} tool call(s) from '{}'", toolCalls.size(), model);
+            return ChatAiResponse.toolCalls(toolCalls);
+        }
+
         if (content == null) {
-            throw new AiServiceException("No content in AI message");
+            throw new AiServiceException("No content or tool calls in AI response");
         }
 
         log.info("OpenRouter response received from '{}', {} chars", model, content.length());
-        return content;
+        return ChatAiResponse.text(content);
+    }
+
+    private Map<String, Object> buildMessageMap(ChatMessage msg) {
+        Map<String, Object> map = new HashMap<>();
+        map.put(ROLE_KEY, msg.getRole());
+        if (msg.getContent() != null) {
+            map.put(CONTENT_KEY, msg.getContent());
+        }
+        if (msg.getToolCallId() != null) {
+            map.put("tool_call_id", msg.getToolCallId());
+        }
+        return map;
+    }
+
+    @SuppressWarnings("unchecked")
+    private ChatToolCall parseToolCall(Map<String, Object> raw) {
+        String id = (String) raw.get("id");
+        Map<String, Object> function = (Map<String, Object>) raw.get("function");
+        String name = (String) function.get("name");
+        String argsJson = (String) function.get("arguments");
+
+        Map<String, Object> arguments = parseArguments(argsJson);
+        return new ChatToolCall(id, name, arguments);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> parseArguments(String argsJson) {
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            return mapper.readValue(argsJson, Map.class);
+        } catch (Exception e) {
+            log.warn("Failed to parse tool arguments JSON: {}", argsJson);
+            return Map.of();
+        }
     }
 
     private boolean isNonRetryable(HttpStatusCode status) {

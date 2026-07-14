@@ -6,10 +6,16 @@ public class ChatMessage {
 
     private final String role;
     private final String content;
+    private final String toolCallId;
 
     public ChatMessage(String role, String content) {
+        this(role, content, null);
+    }
+
+    public ChatMessage(String role, String content, String toolCallId) {
         this.role = role;
         this.content = content;
+        this.toolCallId = toolCallId;
     }
 
     public static ChatMessage user(String content) {
@@ -24,6 +30,10 @@ public class ChatMessage {
         return new ChatMessage("system", content);
     }
 
+    public static ChatMessage tool(String toolCallId, String content) {
+        return new ChatMessage("tool", content, toolCallId);
+    }
+
     public String getRole() {
         return role;
     }
@@ -32,17 +42,23 @@ public class ChatMessage {
         return content;
     }
 
+    public String getToolCallId() {
+        return toolCallId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ChatMessage that = (ChatMessage) o;
-        return Objects.equals(role, that.role) && Objects.equals(content, that.content);
+        return Objects.equals(role, that.role)
+                && Objects.equals(content, that.content)
+                && Objects.equals(toolCallId, that.toolCallId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(role, content);
+        return Objects.hash(role, content, toolCallId);
     }
 
     @Override

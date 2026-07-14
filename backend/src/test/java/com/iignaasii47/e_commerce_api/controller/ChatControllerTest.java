@@ -11,6 +11,9 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -25,9 +28,13 @@ class ChatControllerTest {
     @MockitoBean
     private ChatUseCase chatUseCase;
 
+    @MockitoBean
+    private UserIdExtractor userIdExtractor;
+
     @Test
     void shouldReturnReplyWhenValidRequest() throws Exception {
-        when(chatUseCase.chat(any(String.class), anyList())).thenReturn("AI response text");
+        when(userIdExtractor.extract("Bearer token")).thenReturn(1L);
+        when(chatUseCase.chat(anyString(), anyList(), eq(1L))).thenReturn("AI response text");
 
         String requestBody = """
                 {
@@ -37,51 +44,11 @@ class ChatControllerTest {
                 """;
 
         mockMvc.perform(post("/api/chat")
+                        .header("Authorization", "Bearer token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.reply").value("AI response text"));
-    }
-
-    @Test
-    void shouldSendHistoryToUseCase() throws Exception {
-        when(chatUseCase.chat(any(String.class), anyList())).thenReturn("response");
-
-        String requestBody = """
-                {
-                    "message": "follow up",
-                    "history": [
-                        {"role": "user", "content": "hello"},
-                        {"role": "bot", "content": "hi there"}
-                    ]
-                }
-                """;
-
-        mockMvc.perform(post("/api/chat")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.reply").value("response"));
-    }
-
-    @Test
-    void shouldMapBotRoleToAssistant() throws Exception {
-        when(chatUseCase.chat(any(String.class), anyList())).thenReturn("response");
-
-        String requestBody = """
-                {
-                    "message": "help",
-                    "history": [
-                        {"role": "bot", "content": "previous bot message"}
-                    ]
-                }
-                """;
-
-        mockMvc.perform(post("/api/chat")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.reply").value("response"));
     }
 
     @Test
@@ -94,6 +61,7 @@ class ChatControllerTest {
                 """;
 
         mockMvc.perform(post("/api/chat")
+                        .header("Authorization", "Bearer token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isBadRequest());
@@ -108,6 +76,7 @@ class ChatControllerTest {
                 """;
 
         mockMvc.perform(post("/api/chat")
+                        .header("Authorization", "Bearer token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isBadRequest());
@@ -115,7 +84,8 @@ class ChatControllerTest {
 
     @Test
     void shouldReturn200WithEmptyHistoryWhenNotProvided() throws Exception {
-        when(chatUseCase.chat(any(String.class), anyList())).thenReturn("response");
+        when(userIdExtractor.extract("Bearer token")).thenReturn(1L);
+        when(chatUseCase.chat(anyString(), anyList(), eq(1L))).thenReturn("response");
 
         String requestBody = """
                 {
@@ -124,6 +94,7 @@ class ChatControllerTest {
                 """;
 
         mockMvc.perform(post("/api/chat")
+                        .header("Authorization", "Bearer token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isOk())

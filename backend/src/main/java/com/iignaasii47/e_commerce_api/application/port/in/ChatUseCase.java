@@ -6,6 +6,6 @@ import java.util.List;
 
 public interface ChatUseCase {
 
-    String chat(String userMessage, List<ChatMessage> history);
+    String chat(String userMessage, List<ChatMessage> history, Long userId);
 
 }

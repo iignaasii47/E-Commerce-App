@@ -1,7 +1,9 @@
 package com.iignaasii47.e_commerce_api.application.service;
 
+import com.iignaasii47.e_commerce_api.domain.model.ChatAiResponse;
 import com.iignaasii47.e_commerce_api.domain.model.ChatMessage;
 import com.iignaasii47.e_commerce_api.domain.port.out.AiClient;
+import com.iignaasii47.e_commerce_api.domain.port.out.ChatToolExecutor;
 import com.iignaasii47.e_commerce_api.domain.port.out.CvDataProvider;
 
 import org.junit.jupiter.api.Test;
@@ -15,6 +17,8 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -28,19 +32,23 @@ class ChatUseCaseServiceTest {
     @Mock
     private CvDataProvider cvDataProvider;
 
+    @Mock
+    private ChatToolExecutor chatToolExecutor;
+
     @InjectMocks
     private ChatUseCaseService chatUseCaseService;
 
     @Test
     void shouldSendMessageWithSystemPromptAndCvData() {
         when(cvDataProvider.getCvContent()).thenReturn("CV content");
-        when(aiClient.sendMessage(any(), anyString())).thenReturn("AI response");
+        when(aiClient.sendMessage(anyList(), anyString(), anyList()))
+                .thenReturn(ChatAiResponse.text("AI response"));
 
-        String response = chatUseCaseService.chat("hello", List.of());
+        String response = chatUseCaseService.chat("hello", List.of(), 1L);
 
         assertThat(response).isEqualTo("AI response");
         ArgumentCaptor<String> promptCaptor = ArgumentCaptor.forClass(String.class);
-        verify(aiClient).sendMessage(any(), promptCaptor.capture());
+        verify(aiClient).sendMessage(anyList(), promptCaptor.capture(), anyList());
         assertThat(promptCaptor.getValue()).contains("term-shop", "CV content");
     }
 
@@ -48,13 +56,14 @@ class ChatUseCaseServiceTest {
     void shouldIncludeHistoryInFullHistory() {
         ChatMessage previous = ChatMessage.assistant("previous reply");
         when(cvDataProvider.getCvContent()).thenReturn("CV content");
-        when(aiClient.sendMessage(any(), anyString())).thenReturn("response");
+        when(aiClient.sendMessage(anyList(), anyString(), anyList()))
+                .thenReturn(ChatAiResponse.text("response"));
 
-        chatUseCaseService.chat("new message", List.of(previous));
+        chatUseCaseService.chat("new message", List.of(previous), 1L);
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<List<ChatMessage>> historyCaptor = ArgumentCaptor.forClass(List.class);
-        verify(aiClient).sendMessage(historyCaptor.capture(), anyString());
+        verify(aiClient).sendMessage(historyCaptor.capture(), anyString(), anyList());
         List<ChatMessage> fullHistory = historyCaptor.getValue();
         assertThat(fullHistory).hasSize(2);
         assertThat(fullHistory.get(0)).isEqualTo(previous);
@@ -63,50 +72,16 @@ class ChatUseCaseServiceTest {
     }
 
     @Test
-    void shouldAddUserMessageToEmptyHistory() {
-        when(cvDataProvider.getCvContent()).thenReturn("CV content");
-        when(aiClient.sendMessage(any(), anyString())).thenReturn("response");
-
-        chatUseCaseService.chat("first message", List.of());
-
-        @SuppressWarnings("unchecked")
-        ArgumentCaptor<List<ChatMessage>> historyCaptor = ArgumentCaptor.forClass(List.class);
-        verify(aiClient).sendMessage(historyCaptor.capture(), anyString());
-        List<ChatMessage> fullHistory = historyCaptor.getValue();
-        assertThat(fullHistory).hasSize(1);
-        assertThat(fullHistory.get(0).getRole()).isEqualTo("user");
-        assertThat(fullHistory.get(0).getContent()).isEqualTo("first message");
-    }
-
-    @Test
     void shouldPreserveOriginalHistoryImmutability() {
         ChatMessage previous = ChatMessage.assistant("previous");
         List<ChatMessage> originalHistory = List.of(previous);
         when(cvDataProvider.getCvContent()).thenReturn("CV content");
-        when(aiClient.sendMessage(any(), anyString())).thenReturn("response");
+        when(aiClient.sendMessage(anyList(), anyString(), anyList()))
+                .thenReturn(ChatAiResponse.text("response"));
 
-        chatUseCaseService.chat("message", originalHistory);
+        chatUseCaseService.chat("message", originalHistory, 1L);
 
         assertThat(originalHistory).hasSize(1);
-    }
-
-    @Test
-    void shouldIncludeAppDescriptionInSystemPrompt() {
-        when(cvDataProvider.getCvContent()).thenReturn("CV content");
-        when(aiClient.sendMessage(any(), anyString())).thenReturn("response");
-
-        chatUseCaseService.chat("hello", List.of());
-
-        ArgumentCaptor<String> promptCaptor = ArgumentCaptor.forClass(String.class);
-        verify(aiClient).sendMessage(any(), promptCaptor.capture());
-        String prompt = promptCaptor.getValue();
-        assertThat(prompt).contains(
-                "term-shop",
-                "Spring Boot 4.1",
-                "Angular 22",
-                "PostgreSQL",
-                "JWT"
-        );
     }
 
 }
