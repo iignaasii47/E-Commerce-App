@@ -29,6 +29,9 @@ public class ChatRequest {
     }
 
     public List<MessageDto> getHistory() {
+        if (history == null) {
+            return new ArrayList<>();
+        }
         return history;
     }
 

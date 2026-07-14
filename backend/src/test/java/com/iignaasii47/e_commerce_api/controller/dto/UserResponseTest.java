@@ -35,4 +35,36 @@ class UserResponseTest {
         assertThat(response.getCreatedAt()).isNotNull();
     }
 
+    @Test
+    void shouldSetAndGetId() {
+        UserResponse response = new UserResponse();
+        response.setId(1L);
+
+        assertThat(response.getId()).isEqualTo(1L);
+    }
+
+    @Test
+    void shouldSetAndGetUsername() {
+        UserResponse response = new UserResponse();
+        response.setUsername("john");
+
+        assertThat(response.getUsername()).isEqualTo("john");
+    }
+
+    @Test
+    void shouldSetAndGetEmail() {
+        UserResponse response = new UserResponse();
+        response.setEmail("john@example.com");
+
+        assertThat(response.getEmail()).isEqualTo("john@example.com");
+    }
+
+    @Test
+    void shouldSetAndGetCreatedAt() {
+        UserResponse response = new UserResponse();
+        response.setCreatedAt(FIXED_TIME);
+
+        assertThat(response.getCreatedAt()).isEqualTo(FIXED_TIME);
+    }
+
 }

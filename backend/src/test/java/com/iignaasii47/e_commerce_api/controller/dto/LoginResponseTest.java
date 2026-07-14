@@ -28,4 +28,44 @@ class LoginResponseTest {
         assertThat(response.getToken()).isEqualTo("jwt-token");
     }
 
+    @Test
+    void shouldSetAndGetId() {
+        LoginResponse response = new LoginResponse();
+        response.setId(1L);
+
+        assertThat(response.getId()).isEqualTo(1L);
+    }
+
+    @Test
+    void shouldSetAndGetUsername() {
+        LoginResponse response = new LoginResponse();
+        response.setUsername("john");
+
+        assertThat(response.getUsername()).isEqualTo("john");
+    }
+
+    @Test
+    void shouldSetAndGetEmail() {
+        LoginResponse response = new LoginResponse();
+        response.setEmail("john@example.com");
+
+        assertThat(response.getEmail()).isEqualTo("john@example.com");
+    }
+
+    @Test
+    void shouldSetAndGetCreatedAt() {
+        LoginResponse response = new LoginResponse();
+        response.setCreatedAt(FIXED_TIME);
+
+        assertThat(response.getCreatedAt()).isEqualTo(FIXED_TIME);
+    }
+
+    @Test
+    void shouldSetAndGetToken() {
+        LoginResponse response = new LoginResponse();
+        response.setToken("jwt-token");
+
+        assertThat(response.getToken()).isEqualTo("jwt-token");
+    }
+
 }
