@@ -4,6 +4,7 @@ import com.iignaasii47.e_commerce_api.application.port.in.ChatUseCase;
 import com.iignaasii47.e_commerce_api.controller.dto.ChatRequest;
 import com.iignaasii47.e_commerce_api.controller.dto.ChatResponse;
 import com.iignaasii47.e_commerce_api.domain.model.ChatMessage;
+import com.iignaasii47.e_commerce_api.domain.model.ChatResult;
 
 import jakarta.validation.Valid;
 
@@ -35,8 +36,8 @@ public class ChatController {
                 .map(dto -> new ChatMessage(mapRole(dto.getRole()), dto.getContent()))
                 .toList();
 
-        String reply = chatUseCase.chat(request.getMessage(), history, userId);
-        return ChatResponse.of(reply);
+        ChatResult result = chatUseCase.chat(request.getMessage(), history, userId);
+        return ChatResponse.from(result);
     }
 
     private String mapRole(String role) {

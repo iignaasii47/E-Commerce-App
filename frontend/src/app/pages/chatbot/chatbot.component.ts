@@ -4,6 +4,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChatMessage } from '../../models/chat-message.model';
 import { ChatbotService } from '../../services/chatbot.service';
 import { AuthService } from '../../services/auth.service';
+import { CartService } from '../../services/cart.service';
 
 @Component({
   selector: 'app-chatbot',
@@ -190,6 +191,7 @@ import { AuthService } from '../../services/auth.service';
 export class ChatbotComponent implements OnInit, AfterViewInit {
   private readonly chatbotService = inject(ChatbotService);
   readonly auth = inject(AuthService);
+  readonly cartService = inject(CartService);
 
   readonly messages = signal<ChatMessage[]>([]);
   readonly isLoading = signal(false);
@@ -199,9 +201,7 @@ export class ChatbotComponent implements OnInit, AfterViewInit {
 
   private readonly scrollEffect = effect(() => {
     this.messages();
-    if (!this.isLoading()) {
-      setTimeout(() => this.scrollToBottom());
-    }
+    setTimeout(() => this.scrollToBottom());
   });
 
   ngOnInit(): void {
@@ -233,12 +233,15 @@ export class ChatbotComponent implements OnInit, AfterViewInit {
     this.isLoading.set(true);
 
     this.chatbotService.sendMessage(text, history).subscribe({
-      next: (response) => {
+      next: ({ reply, toolsUsed }) => {
         this.messages.update((msgs) => [
           ...msgs,
-          { role: 'bot', content: response, timestamp: new Date() },
+          { role: 'bot', content: reply, timestamp: new Date() },
         ]);
         this.isLoading.set(false);
+        if (toolsUsed?.some((t) => t === 'add_to_cart' || t === 'remove_from_cart')) {
+          this.cartService.loadCart();
+        }
       },
       error: (err: HttpErrorResponse) => {
         this.isLoading.set(false);

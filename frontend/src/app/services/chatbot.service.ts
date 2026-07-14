@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of, delay, map } from 'rxjs';
+import { Observable, of, delay } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { AuthService } from './auth.service';
 
@@ -11,6 +11,7 @@ interface ChatRequest {
 
 interface ChatResponse {
   reply: string;
+  toolsUsed?: string[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -20,11 +21,9 @@ export class ChatbotService {
 
   private readonly apiUrl = environment.apiUrl + '/api/chat';
 
-  sendMessage(message: string, history: { role: string; content: string }[]): Observable<string> {
+  sendMessage(message: string, history: { role: string; content: string }[]): Observable<{ reply: string; toolsUsed?: string[] }> {
     const body: ChatRequest = { message, history };
-    return this.http.post<ChatResponse>(this.apiUrl, body).pipe(
-      map((res) => res.reply),
-    );
+    return this.http.post<ChatResponse>(this.apiUrl, body);
   }
 
   getGreeting(): Observable<string> {

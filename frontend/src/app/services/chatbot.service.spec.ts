@@ -27,18 +27,20 @@ describe('ChatbotService', () => {
 
   it('sendMessage should POST to /api/chat and return reply', () => {
     const history = [{ role: 'user', content: 'hello' }];
-    let reply: string | undefined;
+    let result: { reply: string; toolsUsed?: string[] } | undefined;
 
     service.sendMessage('hello', history).subscribe((r) => {
-      reply = r;
+      result = r;
     });
 
     const req = httpMock.expectOne(environment.apiUrl + '/api/chat');
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual({ message: 'hello', history });
-    req.flush({ reply: 'Hi there!' });
+    req.flush({ reply: 'Hi there!', toolsUsed: ['add_to_cart'] });
 
-    expect(reply).toBe('Hi there!');
+    expect(result).toBeDefined();
+    expect(result!.reply).toBe('Hi there!');
+    expect(result!.toolsUsed).toEqual(['add_to_cart']);
   });
 
   it('sendMessage should send conversation history', () => {

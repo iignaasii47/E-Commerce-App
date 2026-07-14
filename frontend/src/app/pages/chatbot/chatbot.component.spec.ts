@@ -1,18 +1,23 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { of, throwError } from 'rxjs';
 import { ChatbotComponent } from './chatbot.component';
-import { ChatbotService } from '../../services/chatbot.service';
+import { ChatbotService, CartService } from '../../services';
+import { environment } from '../../../environments/environment';
 
 describe('ChatbotComponent', () => {
   async function setup() {
     await TestBed.configureTestingModule({
       imports: [ChatbotComponent],
-      providers: [provideRouter([])],
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
+    const httpMock = TestBed.inject(HttpTestingController);
     const fixture = TestBed.createComponent(ChatbotComponent);
+    httpMock.expectOne(environment.apiUrl + '/api/cart').flush([]);
     const component = fixture.componentInstance;
-    return { fixture, component };
+    return { fixture, component, httpMock };
   }
 
   it('should create', async () => {
@@ -141,7 +146,7 @@ describe('ChatbotComponent', () => {
     const { fixture, component } = await setup();
     const chatbot = TestBed.inject(ChatbotService);
     vi.spyOn(chatbot, 'getGreeting').mockReturnValue(of('greeting'));
-    const sendSpy = vi.spyOn(chatbot, 'sendMessage').mockReturnValue(of('Bot reply'));
+    const sendSpy = vi.spyOn(chatbot, 'sendMessage').mockReturnValue(of({ reply: 'Bot reply', toolsUsed: [] }));
     fixture.detectChanges();
 
     component.inputValue = 'hello';
@@ -163,7 +168,7 @@ describe('ChatbotComponent', () => {
     const { fixture, component } = await setup();
     const chatbot = TestBed.inject(ChatbotService);
     vi.spyOn(chatbot, 'getGreeting').mockReturnValue(of('greeting'));
-    vi.spyOn(chatbot, 'sendMessage').mockReturnValue(of('Bot reply'));
+    vi.spyOn(chatbot, 'sendMessage').mockReturnValue(of({ reply: 'Bot reply', toolsUsed: [] }));
     fixture.detectChanges();
 
     component.inputValue = 'hello';
@@ -250,5 +255,52 @@ describe('ChatbotComponent', () => {
     expect(component.messages().length).toBe(3);
     expect(component.messages()[2].content).toContain('an error occurred');
     expect(component.isLoading()).toBe(false);
+  });
+
+  it('should reload cart when sendMessage returns add_to_cart tool', async () => {
+    const { fixture, component, httpMock } = await setup();
+    const chatbot = TestBed.inject(ChatbotService);
+    const cartService = TestBed.inject(CartService);
+    vi.spyOn(chatbot, 'getGreeting').mockReturnValue(of('greeting'));
+    vi.spyOn(chatbot, 'sendMessage').mockReturnValue(of({ reply: 'Added!', toolsUsed: ['add_to_cart'] }));
+    fixture.detectChanges();
+
+    component.inputValue = 'add item';
+    component.sendMessage();
+    httpMock.expectOne(environment.apiUrl + '/api/cart').flush([]);
+    fixture.detectChanges();
+
+    expect((cartService as any).items().length).toBe(0);
+  });
+
+  it('should reload cart when sendMessage returns remove_from_cart tool', async () => {
+    const { fixture, component, httpMock } = await setup();
+    const chatbot = TestBed.inject(ChatbotService);
+    const cartService = TestBed.inject(CartService);
+    vi.spyOn(chatbot, 'getGreeting').mockReturnValue(of('greeting'));
+    vi.spyOn(chatbot, 'sendMessage').mockReturnValue(of({ reply: 'Removed!', toolsUsed: ['remove_from_cart'] }));
+    fixture.detectChanges();
+
+    component.inputValue = 'remove item';
+    component.sendMessage();
+    httpMock.expectOne(environment.apiUrl + '/api/cart').flush([]);
+    fixture.detectChanges();
+
+    expect((cartService as any).items().length).toBe(0);
+  });
+
+  it('should not reload cart when sendMessage has no cart tools', async () => {
+    const { fixture, component, httpMock } = await setup();
+    const chatbot = TestBed.inject(ChatbotService);
+    vi.spyOn(chatbot, 'getGreeting').mockReturnValue(of('greeting'));
+    vi.spyOn(chatbot, 'sendMessage').mockReturnValue(of({ reply: 'OK', toolsUsed: ['search_products'] }));
+    fixture.detectChanges();
+
+    component.inputValue = 'search';
+    component.sendMessage();
+    fixture.detectChanges();
+
+    // no pending HTTP request should exist since loadCart wasn't called
+    httpMock.verify();
   });
 });

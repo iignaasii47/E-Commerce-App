@@ -3,6 +3,7 @@ package com.iignaasii47.e_commerce_api.application.service;
 import com.iignaasii47.e_commerce_api.application.port.in.ChatUseCase;
 import com.iignaasii47.e_commerce_api.domain.model.ChatAiResponse;
 import com.iignaasii47.e_commerce_api.domain.model.ChatMessage;
+import com.iignaasii47.e_commerce_api.domain.model.ChatResult;
 import com.iignaasii47.e_commerce_api.domain.model.ChatToolCall;
 import com.iignaasii47.e_commerce_api.domain.model.ChatToolResult;
 import com.iignaasii47.e_commerce_api.domain.port.out.AiClient;
@@ -70,29 +71,34 @@ public class ChatUseCaseService implements ChatUseCase {
     }
 
     @Override
-    public String chat(String userMessage, List<ChatMessage> history, Long userId) {
+    public ChatResult chat(String userMessage, List<ChatMessage> history, Long userId) {
         String systemPrompt = APP_DESCRIPTION + CV_INSTRUCTIONS + cvDataProvider.getCvContent();
 
         List<ChatMessage> messages = new ArrayList<>(history);
         messages.add(ChatMessage.user(userMessage));
+        List<String> toolsUsed = new ArrayList<>();
 
         for (int i = 0; i < MAX_TOOL_ITERATIONS; i++) {
             ChatAiResponse response = aiClient.sendMessage(messages, systemPrompt, TOOLS);
 
             if (response.hasToolCalls()) {
                 for (ChatToolCall toolCall : response.getToolCalls()) {
+                    toolsUsed.add(toolCall.getFunctionName());
                     ChatToolResult result = chatToolExecutor.execute(toolCall, userId);
                     messages.add(ChatMessage.tool(result.getToolCallId(), result.getResult()));
                 }
                 continue;
             }
 
-            return response.getContent() != null
+            String reply = response.getContent() != null
                     ? response.getContent()
                     : "I'm not sure how to help with that.";
+            return new ChatResult(reply, toolsUsed);
         }
 
-        return "I tried several times but couldn't complete your request. Please try again.";
+        return new ChatResult(
+                "I tried several times but couldn't complete your request. Please try again.",
+                toolsUsed);
     }
 
     @SuppressWarnings("unchecked")

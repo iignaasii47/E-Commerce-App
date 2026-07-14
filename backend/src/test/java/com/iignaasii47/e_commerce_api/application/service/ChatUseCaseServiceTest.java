@@ -2,6 +2,7 @@ package com.iignaasii47.e_commerce_api.application.service;
 
 import com.iignaasii47.e_commerce_api.domain.model.ChatAiResponse;
 import com.iignaasii47.e_commerce_api.domain.model.ChatMessage;
+import com.iignaasii47.e_commerce_api.domain.model.ChatResult;
 import com.iignaasii47.e_commerce_api.domain.port.out.AiClient;
 import com.iignaasii47.e_commerce_api.domain.port.out.ChatToolExecutor;
 import com.iignaasii47.e_commerce_api.domain.port.out.CvDataProvider;
@@ -16,9 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -44,9 +43,10 @@ class ChatUseCaseServiceTest {
         when(aiClient.sendMessage(anyList(), anyString(), anyList()))
                 .thenReturn(ChatAiResponse.text("AI response"));
 
-        String response = chatUseCaseService.chat("hello", List.of(), 1L);
+        ChatResult result = chatUseCaseService.chat("hello", List.of(), 1L);
 
-        assertThat(response).isEqualTo("AI response");
+        assertThat(result.getReply()).isEqualTo("AI response");
+        assertThat(result.getToolsUsed()).isEmpty();
         ArgumentCaptor<String> promptCaptor = ArgumentCaptor.forClass(String.class);
         verify(aiClient).sendMessage(anyList(), promptCaptor.capture(), anyList());
         assertThat(promptCaptor.getValue()).contains("term-shop", "CV content");
@@ -69,6 +69,17 @@ class ChatUseCaseServiceTest {
         assertThat(fullHistory.get(0)).isEqualTo(previous);
         assertThat(fullHistory.get(1).getRole()).isEqualTo("user");
         assertThat(fullHistory.get(1).getContent()).isEqualTo("new message");
+    }
+
+    @Test
+    void shouldReturnEmptyToolsUsedWhenNoTools() {
+        when(cvDataProvider.getCvContent()).thenReturn("CV content");
+        when(aiClient.sendMessage(anyList(), anyString(), anyList()))
+                .thenReturn(ChatAiResponse.text("response"));
+
+        ChatResult result = chatUseCaseService.chat("hello", List.of(), 1L);
+
+        assertThat(result.getToolsUsed()).isEmpty();
     }
 
     @Test

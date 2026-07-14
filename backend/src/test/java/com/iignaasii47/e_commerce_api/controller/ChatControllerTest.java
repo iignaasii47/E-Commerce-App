@@ -1,6 +1,7 @@
 package com.iignaasii47.e_commerce_api.controller;
 
 import com.iignaasii47.e_commerce_api.application.port.in.ChatUseCase;
+import com.iignaasii47.e_commerce_api.domain.model.ChatResult;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,9 +10,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.mockito.ArgumentMatchers.any;
+import java.util.List;
+
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -34,7 +35,8 @@ class ChatControllerTest {
     @Test
     void shouldReturnReplyWhenValidRequest() throws Exception {
         when(userIdExtractor.extract("Bearer token")).thenReturn(1L);
-        when(chatUseCase.chat(anyString(), anyList(), eq(1L))).thenReturn("AI response text");
+        when(chatUseCase.chat(anyString(), anyList(), eq(1L)))
+                .thenReturn(new ChatResult("AI response text", List.of()));
 
         String requestBody = """
                 {
@@ -48,7 +50,31 @@ class ChatControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.reply").value("AI response text"));
+                .andExpect(jsonPath("$.reply").value("AI response text"))
+                .andExpect(jsonPath("$.toolsUsed").isEmpty());
+    }
+
+    @Test
+    void shouldReturnToolsUsed() throws Exception {
+        when(userIdExtractor.extract("Bearer token")).thenReturn(1L);
+        when(chatUseCase.chat(anyString(), anyList(), eq(1L)))
+                .thenReturn(new ChatResult("Done", List.of("search_products", "add_to_cart")));
+
+        String requestBody = """
+                {
+                    "message": "add keyboard to cart",
+                    "history": []
+                }
+                """;
+
+        mockMvc.perform(post("/api/chat")
+                        .header("Authorization", "Bearer token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.reply").value("Done"))
+                .andExpect(jsonPath("$.toolsUsed[0]").value("search_products"))
+                .andExpect(jsonPath("$.toolsUsed[1]").value("add_to_cart"));
     }
 
     @Test
@@ -85,7 +111,8 @@ class ChatControllerTest {
     @Test
     void shouldReturn200WithEmptyHistoryWhenNotProvided() throws Exception {
         when(userIdExtractor.extract("Bearer token")).thenReturn(1L);
-        when(chatUseCase.chat(anyString(), anyList(), eq(1L))).thenReturn("response");
+        when(chatUseCase.chat(anyString(), anyList(), eq(1L)))
+                .thenReturn(ChatResult.of("response"));
 
         String requestBody = """
                 {
@@ -98,7 +125,8 @@ class ChatControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.reply").value("response"));
+                .andExpect(jsonPath("$.reply").value("response"))
+                .andExpect(jsonPath("$.toolsUsed").isEmpty());
     }
 
 }
