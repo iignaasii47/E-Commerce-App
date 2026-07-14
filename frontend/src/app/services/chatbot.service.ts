@@ -1,8 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
-import { delay } from 'rxjs/operators';
-import { map } from 'rxjs/operators';
+import { Observable, of, delay, map } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { AuthService } from './auth.service';
 

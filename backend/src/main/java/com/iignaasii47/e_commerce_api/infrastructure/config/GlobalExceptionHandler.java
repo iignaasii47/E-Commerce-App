@@ -1,5 +1,6 @@
 package com.iignaasii47.e_commerce_api.infrastructure.config;
 
+import com.iignaasii47.e_commerce_api.domain.exception.AiServiceException;
 import com.iignaasii47.e_commerce_api.domain.exception.DuplicateUserException;
 import com.iignaasii47.e_commerce_api.domain.exception.InvalidCredentialsException;
 
@@ -43,6 +44,17 @@ public class GlobalExceptionHandler {
                 TIMESTAMP, LocalDateTime.now(ZoneOffset.UTC),
                 STATUS, 401,
                 ERROR, "Unauthorized",
+                MESSAGE, ex.getMessage()
+        ));
+    }
+
+    @ExceptionHandler(AiServiceException.class)
+    public ResponseEntity<Map<String, Object>> handleAiService(AiServiceException ex) {
+        log.error("AI service error: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(Map.of(
+                TIMESTAMP, LocalDateTime.now(ZoneOffset.UTC),
+                STATUS, 502,
+                ERROR, "Bad Gateway",
                 MESSAGE, ex.getMessage()
         ));
     }

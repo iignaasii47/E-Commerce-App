@@ -19,7 +19,6 @@ import java.time.LocalDateTime;
 import java.time.Month;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -124,7 +123,7 @@ class UserControllerTest {
 
     @Test
     void shouldReturn401WhenInvalidCredentials() throws Exception {
-        when(userUseCase.login(eq("john@example.com"), eq("wrong"))).thenThrow(new InvalidCredentialsException("Invalid email or password"));
+        when(userUseCase.login("john@example.com", "wrong")).thenThrow(new InvalidCredentialsException("Invalid email or password"));
 
         String requestBody = """
                 {

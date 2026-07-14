@@ -217,14 +217,16 @@ When referring to SonarQube analysis results, fetch them from the SonarQube serv
 http://localhost:9000
 ```
 
-Use the SonarQube API to retrieve open issues for this project. The project key is `com.example:trello`.
+Use the SonarQube API to retrieve open issues for this project. The project key is `ecommerce-api`.
 
-Maven command to run a fresh analysis:
+**IMPORTANT: NEVER run SonarQube scans** (e.g., `mvn sonar:sonar`). Only fetch existing issues via the API. Scans are resource-intensive and are run manually by the developer.
+
+Maven command to run a fresh analysis (for the developer, NOT the agent):
 ```
-mvn sonar:sonar -Dsonar.host.url=http://localhost:9000 -Dsonar.projectKey=com.example:trello
+mvn sonar:sonar -Dsonar.host.url=http://localhost:9000 -Dsonar.projectKey=ecommerce-api
 ```
 
-The SonarQube token is stored in `run-sonarqube.ps1`. Use the script or extract the token from it when making API calls.
+The SonarQube token is stored in the `.env` file under the key `SONAR_TOKEN`. Load it from there when making API calls.
 
 API calls to SonarQube require Basic authentication with the token as username and an empty password:
 ```

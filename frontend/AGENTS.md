@@ -184,3 +184,4 @@ Typography:
 6. Lazy-load all page components via `loadComponent()` in routes
 7. Re-export new models and services from their barrel (`index.ts`) files
 8. Prefer the existing shared components (`TerminalButton`, `TerminalInput`, `TerminalCard`) when building UI
+9. **Never** run SonarQube scans — SonarQube analysis is handled externally and should not be executed by the agent

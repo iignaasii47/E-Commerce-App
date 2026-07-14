@@ -1,10 +1,16 @@
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 
+Get-Content "$root\backend\.env" | ForEach-Object {
+    if ($_ -match '^\s*([^#=]+?)\s*=\s*(.+?)\s*$') {
+        [Environment]::SetEnvironmentVariable($matches[1], $matches[2], 'Process')
+    }
+}
+
 Write-Host "=== Running SonarQube scan for Backend ==="
 Set-Location "$root\backend"
 & ./mvnw.cmd clean verify sonar:sonar `
   "-Dsonar.host.url=http://localhost:9000" `
-  "-Dsonar.token=squ_50750bb1b22c7019db867d3718fba12ad1d7381c"
+  "-Dsonar.token=$env:SONAR_TOKEN"
 if ($LASTEXITCODE -ne 0) {
     Write-Host "ERROR: Backend SonarQube scan failed with exit code $LASTEXITCODE."
     exit $LASTEXITCODE
