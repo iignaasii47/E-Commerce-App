@@ -34,6 +34,12 @@ export const routes: Routes = [
       import('./pages/checkout/checkout.component').then((m) => m.CheckoutComponent),
   },
   {
+    path: 'chatbot',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/chatbot/chatbot.component').then((m) => m.ChatbotComponent),
+  },
+  {
     path: 'login',
     loadComponent: () =>
       import('./pages/auth/login/login.component').then((m) => m.LoginComponent),

@@ -233,7 +233,17 @@ Authorization: Basic <base64(token:)>
 
 ---
 
-# 14. Architectural Philosophy
+# 14. Project Boundary (STRICT)
+
+This is the **backend** project. The sibling `../frontend` directory is a separate Angular project.
+
+- NEVER modify, create, or delete files in `../frontend` when working on this backend project.
+- If a task requires frontend changes, inform the user and stop. Let them handle the frontend side independently.
+- Backend API changes (new endpoints, DTO changes, etc.) should be documented so the frontend developer can consume them, but do not implement the frontend side.
+
+---
+
+# 15. Architectural Philosophy
 
 This project prioritizes:
 

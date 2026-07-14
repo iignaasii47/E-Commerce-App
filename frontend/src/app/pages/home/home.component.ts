@@ -23,6 +23,10 @@ import { AuthService } from '../../services';
             <span class="action-cmd">$ grep .</span>
             <span class="action-desc">search catalog</span>
           </a>
+          <a routerLink="/chatbot" class="action-item">
+            <span class="action-cmd">$ ./assistant</span>
+            <span class="action-desc">chatbot assistant</span>
+          </a>
         </div>
       </div>
 
