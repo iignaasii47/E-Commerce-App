@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../services';
+import { StatusService } from '../../services/status.service';
 
 @Component({
   selector: 'app-home',
@@ -31,19 +32,33 @@ import { AuthService } from '../../services';
       </div>
 
       <div class="system-info">
-        <p class="section-label">// system info</p>
+        <p class="section-label">// tech stack</p>
+        <div class="info-grid">
+          @for (item of status.techStack; track item.name) {
+            <div class="info-row">
+              <span class="info-key">{{ item.name }}:</span>
+              <span class="info-val">{{ item.version ? 'v' + item.version + ' — ' : '' }}{{ item.description }}</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="system-info">
+        <p class="section-label">// service status</p>
         <div class="info-grid">
           <div class="info-row">
-            <span class="info-key">products:</span>
-            <span class="info-val">10 items in stock</span>
+            <span class="info-key">api:</span>
+            <span class="info-val">
+              <span class="status-dot" [class.online]="status.apiStatus() === 'online'" [class.offline]="status.apiStatus() === 'offline'"></span>
+              {{ status.apiStatus() }}
+            </span>
           </div>
           <div class="info-row">
-            <span class="info-key">categories:</span>
-            <span class="info-val">peripherals, displays, audio, accessories, storage</span>
-          </div>
-          <div class="info-row">
-            <span class="info-key">status:</span>
-            <span class="info-val info-val--green">operational</span>
+            <span class="info-key">database:</span>
+            <span class="info-val">
+              <span class="status-dot" [class.online]="status.dbStatus() === 'online'" [class.offline]="status.dbStatus() === 'offline'"></span>
+              {{ status.dbStatus() }}
+            </span>
           </div>
           <div class="info-row">
             <span class="info-key">session:</span>
@@ -142,15 +157,32 @@ import { AuthService } from '../../services';
 
     .info-val {
       color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
-    .info-val--green {
-      color: var(--accent-green);
+    .status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-muted);
+
+      &.online {
+        background: var(--accent-green);
+        box-shadow: 0 0 6px var(--accent-green);
+      }
+
+      &.offline {
+        background: var(--accent-red);
+      }
     }
   `,
 })
 export class HomeComponent {
   readonly auth = inject(AuthService);
+  readonly status = inject(StatusService);
 
   readonly asciiArt = String.raw`
  __        _______ ____ ____  _   _  ___  ____    _____ _   _ ___ 
