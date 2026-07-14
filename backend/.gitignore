@@ -35,3 +35,7 @@ build/
 
 ### Environment ###
 .env
+
+### SonarQube ###
+.scannerwork/
+report-task.txt
