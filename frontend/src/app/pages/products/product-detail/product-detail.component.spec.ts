@@ -1,18 +1,40 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ProductDetailComponent } from './product-detail.component';
 import { ProductService, CartService, NotificationService } from '../../../services';
+import { environment } from '../../../../environments/environment';
+
+const MOCK_PRODUCTS = [
+  {
+    id: 1, name: 'Mechanical Keyboard MK-750',
+    description: 'Hot-swappable mechanical keyboard with RGB backlighting.',
+    price: 149.99, category: 'peripherals',
+    image: 'https://placehold.co/400x300/0a0e14/00ff41?text=MK-750',
+    stock: 23, rating: 4.7,
+  },
+  {
+    id: 2, name: 'Ultrawide Monitor 34"',
+    description: '34-inch curved ultrawide QHD monitor.',
+    price: 599.99, category: 'displays',
+    image: 'https://placehold.co/400x300/0a0e14/7dd3fc?text=UW-34',
+    stock: 8, rating: 4.9,
+  },
+];
 
 describe('ProductDetailComponent', () => {
   async function setup() {
     await TestBed.configureTestingModule({
       imports: [ProductDetailComponent],
-      providers: [provideRouter([])],
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
+    const httpMock = TestBed.inject(HttpTestingController);
     const fixture = TestBed.createComponent(ProductDetailComponent);
+    httpMock.expectOne(environment.apiUrl + '/api/products').flush(MOCK_PRODUCTS);
     const component = fixture.componentInstance;
     fixture.detectChanges();
-    return { fixture, component };
+    return { fixture, component, httpMock };
   }
 
   it('should create', async () => {

@@ -1,18 +1,27 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ProductsComponent } from './products.component';
-import { ProductService } from '../../services';
+import { environment } from '../../../environments/environment';
+
+const MOCK_PRODUCTS = [
+  { id: 1, name: 'Keyboard', description: 'A keyboard', price: 99.99, category: 'peripherals', image: '', stock: 10, rating: 4.5 },
+  { id: 2, name: 'Monitor', description: 'A monitor', price: 299.99, category: 'displays', image: '', stock: 5, rating: 4.2 },
+];
 
 describe('ProductsComponent', () => {
   async function setup() {
     await TestBed.configureTestingModule({
       imports: [ProductsComponent],
-      providers: [provideRouter([])],
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
+    const httpMock = TestBed.inject(HttpTestingController);
     const fixture = TestBed.createComponent(ProductsComponent);
+    httpMock.expectOne(environment.apiUrl + '/api/products').flush(MOCK_PRODUCTS);
     const component = fixture.componentInstance;
     fixture.detectChanges();
-    return { fixture, component };
+    return { fixture, component, httpMock };
   }
 
   it('should create', async () => {
@@ -25,10 +34,10 @@ describe('ProductsComponent', () => {
     expect(fixture.nativeElement.querySelector('.product-grid')).toBeTruthy();
   });
 
-  it('should render all 10 products by default', async () => {
+  it('should render all products by default', async () => {
     const { fixture } = await setup();
     const cards = fixture.nativeElement.querySelectorAll('.t-card');
-    expect(cards.length).toBe(10);
+    expect(cards.length).toBe(2);
   });
 
   it('should render category filter buttons', async () => {
@@ -40,7 +49,7 @@ describe('ProductsComponent', () => {
 
   it('should show correct item count', async () => {
     const { fixture } = await setup();
-    expect(fixture.nativeElement.textContent).toContain('10 items found');
+    expect(fixture.nativeElement.textContent).toContain('2 items found');
   });
 
   it('should filter products when searching', async () => {
@@ -88,13 +97,13 @@ describe('ProductsComponent', () => {
 
   it('should highlight active category', async () => {
     const { fixture } = await setup();
-    fixture.componentInstance.selectCategory('audio');
+    fixture.componentInstance.selectCategory('displays');
     fixture.detectChanges();
     const filters = fixture.nativeElement.querySelectorAll('.filter-tag');
     const active = Array.from(filters).find((f) =>
       (f as HTMLElement).classList.contains('active'),
     ) as HTMLElement | undefined;
-    expect(active?.textContent?.trim()).toBe('audio');
+    expect(active?.textContent?.trim()).toBe('displays');
   });
 
   it('should reset search when clearing', async () => {
@@ -104,7 +113,7 @@ describe('ProductsComponent', () => {
     expect(fixture.nativeElement.querySelectorAll('.t-card').length).toBe(1);
     fixture.componentInstance.onSearch('');
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelectorAll('.t-card').length).toBe(10);
+    expect(fixture.nativeElement.querySelectorAll('.t-card').length).toBe(2);
   });
 
   it('selectCategory with empty string shows all', async () => {
@@ -114,6 +123,6 @@ describe('ProductsComponent', () => {
     expect(fixture.nativeElement.querySelectorAll('.t-card').length).toBe(1);
     fixture.componentInstance.selectCategory('');
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelectorAll('.t-card').length).toBe(10);
+    expect(fixture.nativeElement.querySelectorAll('.t-card').length).toBe(2);
   });
 });
