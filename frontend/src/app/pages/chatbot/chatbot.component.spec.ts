@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { ChatbotComponent } from './chatbot.component';
 import { ChatbotService } from '../../services/chatbot.service';
 
@@ -213,5 +213,42 @@ describe('ChatbotComponent', () => {
     fixture.detectChanges();
     const input = fixture.nativeElement.querySelector('.chat__input-field') as HTMLInputElement;
     expect(input.disabled).toBe(false);
+  });
+
+  it('should show error message when sendMessage fails', async () => {
+    const { fixture, component } = await setup();
+    const chatbot = TestBed.inject(ChatbotService);
+    vi.spyOn(chatbot, 'getGreeting').mockReturnValue(of('greeting'));
+    vi.spyOn(chatbot, 'sendMessage').mockReturnValue(
+      throwError(() => ({ error: { message: 'rate limit exceeded' }, status: 429, message: 'Too Many Requests' })),
+    );
+    fixture.detectChanges();
+
+    component.inputValue = 'hello';
+    component.sendMessage();
+    fixture.detectChanges();
+
+    expect(component.messages().length).toBe(3);
+    expect(component.messages()[2].role).toBe('bot');
+    expect(component.messages()[2].content).toBe('[error] rate limit exceeded');
+    expect(component.isLoading()).toBe(false);
+  });
+
+  it('should show generic error when error has no message', async () => {
+    const { fixture, component } = await setup();
+    const chatbot = TestBed.inject(ChatbotService);
+    vi.spyOn(chatbot, 'getGreeting').mockReturnValue(of('greeting'));
+    vi.spyOn(chatbot, 'sendMessage').mockReturnValue(
+      throwError(() => ({ status: 500 })),
+    );
+    fixture.detectChanges();
+
+    component.inputValue = 'hello';
+    component.sendMessage();
+    fixture.detectChanges();
+
+    expect(component.messages().length).toBe(3);
+    expect(component.messages()[2].content).toContain('an error occurred');
+    expect(component.isLoading()).toBe(false);
   });
 });

@@ -1,5 +1,6 @@
 import { Component, inject, signal, viewChild, ElementRef, AfterViewInit, OnInit, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ChatMessage } from '../../models/chat-message.model';
 import { ChatbotService } from '../../services/chatbot.service';
 import { AuthService } from '../../services/auth.service';
@@ -20,7 +21,7 @@ import { AuthService } from '../../services/auth.service';
 
       <div class="chat__messages" #messagesContainer>
         @for (msg of messages(); track msg.timestamp) {
-          <div class="chat__message" [class.chat__message--user]="msg.role === 'user'">
+          <div class="chat__message" [class.chat__message--user]="msg.role === 'user'" [class.chat__message--error]="msg.role === 'bot' && msg.content.startsWith('[error]')">
             <div class="chat__message-prefix">
               @if (msg.role === 'user') {
                 <span class="chat__prompt-user"
@@ -147,6 +148,10 @@ import { AuthService } from '../../services/auth.service';
       color: var(--text-bright);
     }
 
+    .chat__message--error .chat__message-content {
+      color: var(--accent-red);
+    }
+
     .chat__input {
       display: flex;
       align-items: center;
@@ -227,12 +232,22 @@ export class ChatbotComponent implements OnInit, AfterViewInit {
     this.inputValue = '';
     this.isLoading.set(true);
 
-    this.chatbotService.sendMessage(text, history).subscribe((response) => {
-      this.messages.update((msgs) => [
-        ...msgs,
-        { role: 'bot', content: response, timestamp: new Date() },
-      ]);
-      this.isLoading.set(false);
+    this.chatbotService.sendMessage(text, history).subscribe({
+      next: (response) => {
+        this.messages.update((msgs) => [
+          ...msgs,
+          { role: 'bot', content: response, timestamp: new Date() },
+        ]);
+        this.isLoading.set(false);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.isLoading.set(false);
+        const message = err.error?.message ?? err.message ?? 'an error occurred';
+        this.messages.update((msgs) => [
+          ...msgs,
+          { role: 'bot', content: `[error] ${message}`, timestamp: new Date() },
+        ]);
+      },
     });
   }
 
