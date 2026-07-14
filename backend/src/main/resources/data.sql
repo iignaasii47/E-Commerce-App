@@ -1,3 +1,5 @@
+TRUNCATE TABLE products RESTART IDENTITY CASCADE;
+
 INSERT INTO products (name, description, price, category, image_url, stock, rating) VALUES
 ('Mechanical Keyboard MK-750', 'Premium mechanical keyboard with Cherry MX Blue switches, RGB backlighting, and aircraft-grade aluminum frame.', 149.99, 'peripherals', 'https://placehold.co/400x400/0a0e14/00ff41?text=MK-750', 23, 4.7),
 ('Ultrawide Monitor 34"', '34-inch curved ultrawide monitor with 3440x1440 resolution, 144Hz refresh rate, and HDR400 support.', 599.99, 'displays', 'https://placehold.co/400x400/0a0e14/7dd3fc?text=UW34', 8, 4.9),
