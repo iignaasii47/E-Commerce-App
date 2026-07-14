@@ -2,6 +2,8 @@ package com.iignaasii47.e_commerce_api.infrastructure.client;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class OpenRouterPropertiesTest {
@@ -42,6 +44,21 @@ class OpenRouterPropertiesTest {
         OpenRouterProperties props = new OpenRouterProperties();
 
         assertThat(props.getModel()).isEqualTo("meta-llama/llama-3.3-70b-instruct:free");
+    }
+
+    @Test
+    void shouldSetAndGetFallbackModels() {
+        OpenRouterProperties props = new OpenRouterProperties();
+        props.setFallbackModels(List.of("fallback-1", "fallback-2"));
+
+        assertThat(props.getFallbackModels()).containsExactly("fallback-1", "fallback-2");
+    }
+
+    @Test
+    void shouldHaveEmptyFallbackModelsByDefault() {
+        OpenRouterProperties props = new OpenRouterProperties();
+
+        assertThat(props.getFallbackModels()).isEmpty();
     }
 
 }

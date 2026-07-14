@@ -10,11 +10,13 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Component
 public class OpenRouterClient implements AiClient {
@@ -24,7 +26,8 @@ public class OpenRouterClient implements AiClient {
     private static final String CONTENT_KEY = "content";
 
     private final RestClient restClient;
-    private final String model;
+    private final List<String> allModels;
+    private final AtomicReference<String> currentModel;
 
     public OpenRouterClient(OpenRouterProperties properties) {
         String apiKey = properties.getApiKey();
@@ -33,16 +36,61 @@ public class OpenRouterClient implements AiClient {
                     "OpenRouter API key is not configured. "
                     + "Add OPENROUTER_API_KEY to the .env file in the backend directory.");
         }
-        this.model = properties.getModel();
+
+        List<String> models = new ArrayList<>();
+        models.add(properties.getModel());
+        List<String> fallbacks = properties.getFallbackModels();
+        if (fallbacks != null) {
+            models.addAll(fallbacks);
+        }
+        this.allModels = List.copyOf(models);
+        this.currentModel = new AtomicReference<>(properties.getModel());
+
         this.restClient = RestClient.builder()
                 .baseUrl(properties.getApiUrl())
                 .defaultHeader("Authorization", "Bearer " + apiKey)
                 .defaultHeader("Content-Type", "application/json")
                 .build();
+
+        log.info("OpenRouter configured with primary model '{}' and {} fallback(s)",
+                properties.getModel(), fallbacks != null ? fallbacks.size() : 0);
     }
 
     @Override
     public String sendMessage(List<ChatMessage> history, String systemPrompt) {
+        String model = currentModel.get();
+        String result = trySend(model, history, systemPrompt);
+        if (result != null) {
+            return result;
+        }
+
+        for (String fallback : allModels) {
+            if (fallback.equals(model)) {
+                continue;
+            }
+            log.warn("Falling back to model '{}'", fallback);
+            result = trySend(fallback, history, systemPrompt);
+            if (result != null) {
+                currentModel.set(fallback);
+                log.info("Switched sticky model to '{}'", fallback);
+                return result;
+            }
+        }
+
+        throw new AiServiceException(
+                "All available models are currently rate-limited or unavailable. Please try again later.");
+    }
+
+    private String trySend(String model, List<ChatMessage> history, String systemPrompt) {
+        try {
+            return sendWithModel(model, history, systemPrompt);
+        } catch (AiServiceException e) {
+            log.warn("Model '{}' failed: {}", model, e.getMessage());
+            return null;
+        }
+    }
+
+    private String sendWithModel(String model, List<ChatMessage> history, String systemPrompt) {
         List<Map<String, String>> messages = new ArrayList<>();
         messages.add(Map.of(ROLE_KEY, "system", CONTENT_KEY, systemPrompt));
 
@@ -64,10 +112,16 @@ public class OpenRouterClient implements AiClient {
                     .retrieve()
                     .body(Map.class);
         } catch (HttpClientErrorException e) {
+            if (isNonRetryable(e.getStatusCode())) {
+                throw new AiServiceException(mapClientError(e));
+            }
             throw new AiServiceException(mapClientError(e));
         } catch (HttpServerErrorException e) {
-            log.error("OpenRouter server error: {}", e.getMessage());
-            throw new AiServiceException("OpenRouter service is temporarily unavailable. Please try again later.");
+            log.warn("OpenRouter server error for model '{}': {}", model, e.getMessage());
+            throw new AiServiceException("Model '" + model + "' is temporarily unavailable.");
+        } catch (ResourceAccessException e) {
+            log.warn("Connection error for model '{}': {}", model, e.getMessage());
+            throw new AiServiceException("Model '" + model + "' is unreachable.");
         }
 
         if (response == null) {
@@ -91,11 +145,14 @@ public class OpenRouterClient implements AiClient {
             throw new AiServiceException("No content in AI message");
         }
 
-        log.info("OpenRouter response received, {} chars", content.length());
+        log.info("OpenRouter response received from '{}', {} chars", model, content.length());
         return content;
     }
 
-    @SuppressWarnings("unchecked")
+    private boolean isNonRetryable(HttpStatusCode status) {
+        return status.value() == 401 || status.value() == 402 || status.value() == 403;
+    }
+
     private String mapClientError(HttpClientErrorException e) {
         HttpStatusCode status = e.getStatusCode();
         String openRouterMessage = extractOpenRouterErrorMessage(e);
@@ -106,7 +163,9 @@ public class OpenRouterClient implements AiClient {
                     ? openRouterMessage
                     : "Insufficient credits on your OpenRouter account.";
             case 403 -> "Access denied. Your API key may not have access to this model.";
-            case 429 -> "Rate limit exceeded. Please wait and try again.";
+            case 429 -> openRouterMessage != null
+                    ? openRouterMessage
+                    : "Rate limit exceeded for model.";
             default -> openRouterMessage != null
                     ? openRouterMessage
                     : "OpenRouter API error: " + status.value();
