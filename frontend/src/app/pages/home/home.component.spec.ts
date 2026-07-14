@@ -53,7 +53,7 @@ describe('HomeComponent', () => {
   it('should show quick action items', async () => {
     const { fixture } = await setup();
     const items = fixture.nativeElement.querySelectorAll('.action-item');
-    expect(items.length).toBe(2);
+    expect(items.length).toBe(3);
   });
 
   it('should show system info section', async () => {

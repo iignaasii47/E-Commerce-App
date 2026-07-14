@@ -79,6 +79,6 @@ describe('TerminalTitlebarComponent', () => {
     action.click();
 
     expect(logoutSpy).toHaveBeenCalled();
-    expect(routerSpy).toHaveBeenCalledWith(['/']);
+    expect(routerSpy).toHaveBeenCalledWith(['/login']);
   });
 });
