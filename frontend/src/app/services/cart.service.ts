@@ -1,5 +1,6 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import { ApiCartItem } from '../models';
 import { environment } from '../../environments/environment';
 
@@ -17,7 +18,7 @@ export class CartService {
 
   readonly itemCount = computed(() => this.items().reduce((sum, item) => sum + item.quantity, 0));
 
-  private pendingTimeouts = new Map<number, ReturnType<typeof setTimeout>>();
+  private readonly pendingTimeouts = new Map<number, ReturnType<typeof setTimeout>>();
 
   constructor() {
     this.loadCart();
@@ -84,28 +85,20 @@ export class CartService {
     this.items.set([]);
   }
 
-  private syncQuantity(cartItemId: number, productId: number, newQty: number): void {
-    if (newQty === 0) {
-      this.http.delete(`${this.apiUrl}/${cartItemId}`).subscribe({
-        next: () => {
-          this.items.update((items) => items.filter((i) => i.id !== cartItemId));
-        },
-      });
-    } else {
-      this.http.delete(`${this.apiUrl}/${cartItemId}`).subscribe({
-        next: () => {
-          this.http
-            .post<ApiCartItem>(`${this.apiUrl}?productId=${productId}&quantity=${newQty}`, {})
-            .subscribe({
-              next: (newItem) => {
-                this.items.update((items) => [
-                  ...items.filter((i) => i.id !== cartItemId),
-                  newItem,
-                ]);
-              },
-            });
-        },
-      });
+  private async syncQuantity(cartItemId: number, productId: number, newQty: number): Promise<void> {
+    try {
+      if (newQty === 0) {
+        await firstValueFrom(this.http.delete(`${this.apiUrl}/${cartItemId}`));
+        this.items.update((items) => items.filter((i) => i.id !== cartItemId));
+      } else {
+        await firstValueFrom(this.http.delete(`${this.apiUrl}/${cartItemId}`));
+        const newItem = await firstValueFrom(
+          this.http.post<ApiCartItem>(`${this.apiUrl}?productId=${productId}&quantity=${newQty}`, {}),
+        );
+        this.items.update((items) => [...items.filter((i) => i.id !== cartItemId), newItem]);
+      }
+    } catch {
+      // fire-and-forget: silently ignore, next loadCart() reconciles state
     }
   }
 }

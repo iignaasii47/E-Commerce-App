@@ -10,33 +10,9 @@ class CreateUserRequestTest {
     void shouldCreateWithConstructor() {
         CreateUserRequest request = new CreateUserRequest("john", "john@example.com", "secret123");
 
-        assertThat(request.getUsername()).isEqualTo("john");
-        assertThat(request.getEmail()).isEqualTo("john@example.com");
-        assertThat(request.getPassword()).isEqualTo("secret123");
-    }
-
-    @Test
-    void shouldSetAndGetUsername() {
-        CreateUserRequest request = new CreateUserRequest();
-        request.setUsername("john");
-
-        assertThat(request.getUsername()).isEqualTo("john");
-    }
-
-    @Test
-    void shouldSetAndGetEmail() {
-        CreateUserRequest request = new CreateUserRequest();
-        request.setEmail("john@example.com");
-
-        assertThat(request.getEmail()).isEqualTo("john@example.com");
-    }
-
-    @Test
-    void shouldSetAndGetPassword() {
-        CreateUserRequest request = new CreateUserRequest();
-        request.setPassword("secret123");
-
-        assertThat(request.getPassword()).isEqualTo("secret123");
+        assertThat(request.username()).isEqualTo("john");
+        assertThat(request.email()).isEqualTo("john@example.com");
+        assertThat(request.password()).isEqualTo("secret123");
     }
 
 }

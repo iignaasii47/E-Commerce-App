@@ -24,7 +24,8 @@ public class StatusController {
         String dbStatus = "DOWN";
         try (Connection conn = dataSource.getConnection()) {
             dbStatus = conn.isValid(2) ? "UP" : "DOWN";
-        } catch (Exception ignored) {
+        } catch (Exception _) {
+            // Database not available; dbStatus stays "DOWN"
         }
 
         return Map.of(

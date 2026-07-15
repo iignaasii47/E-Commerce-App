@@ -10,8 +10,16 @@ class ProductTest {
 
     @Test
     void shouldStoreAllFields() {
-        Product product = new Product(1L, "Keyboard", "A mechanical keyboard",
-                new BigDecimal("149.99"), "peripherals", "http://img.url", 10, 4.5);
+        Product product = Product.builder()
+                .id(1L)
+                .name("Keyboard")
+                .description("A mechanical keyboard")
+                .price(new BigDecimal("149.99"))
+                .category("peripherals")
+                .imageUrl("http://img.url")
+                .stock(10)
+                .rating(4.5)
+                .build();
 
         assertThat(product.getId()).isEqualTo(1L);
         assertThat(product.getName()).isEqualTo("Keyboard");
@@ -25,30 +33,48 @@ class ProductTest {
 
     @Test
     void shouldEqualWhenSameId() {
-        Product p1 = new Product(1L, "A", "desc", BigDecimal.ONE, "cat", "img", 1, 1.0);
-        Product p2 = new Product(1L, "B", "other", BigDecimal.TEN, "cat2", "img2", 2, 2.0);
+        Product p1 = Product.builder()
+                .id(1L).name("A").description("desc")
+                .price(BigDecimal.ONE).category("cat").imageUrl("img")
+                .stock(1).rating(1.0).build();
+        Product p2 = Product.builder()
+                .id(1L).name("B").description("other")
+                .price(BigDecimal.TEN).category("cat2").imageUrl("img2")
+                .stock(2).rating(2.0).build();
 
         assertThat(p1).isEqualTo(p2).hasSameHashCodeAs(p2);
     }
 
     @Test
     void shouldNotEqualWhenDifferentId() {
-        Product p1 = new Product(1L, "A", "desc", BigDecimal.ONE, "cat", "img", 1, 1.0);
-        Product p2 = new Product(2L, "A", "desc", BigDecimal.ONE, "cat", "img", 1, 1.0);
+        Product p1 = Product.builder()
+                .id(1L).name("A").description("desc")
+                .price(BigDecimal.ONE).category("cat").imageUrl("img")
+                .stock(1).rating(1.0).build();
+        Product p2 = Product.builder()
+                .id(2L).name("A").description("desc")
+                .price(BigDecimal.ONE).category("cat").imageUrl("img")
+                .stock(1).rating(1.0).build();
 
         assertThat(p1).isNotEqualTo(p2);
     }
 
     @Test
     void shouldNotEqualNull() {
-        Product p1 = new Product(1L, "A", "desc", BigDecimal.ONE, "cat", "img", 1, 1.0);
+        Product p1 = Product.builder()
+                .id(1L).name("A").description("desc")
+                .price(BigDecimal.ONE).category("cat").imageUrl("img")
+                .stock(1).rating(1.0).build();
 
         assertThat(p1).isNotEqualTo(null);
     }
 
     @Test
     void shouldNotEqualDifferentType() {
-        Product p1 = new Product(1L, "A", "desc", BigDecimal.ONE, "cat", "img", 1, 1.0);
+        Product p1 = Product.builder()
+                .id(1L).name("A").description("desc")
+                .price(BigDecimal.ONE).category("cat").imageUrl("img")
+                .stock(1).rating(1.0).build();
 
         assertThat(p1).isNotEqualTo("not a product");
     }

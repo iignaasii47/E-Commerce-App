@@ -2,8 +2,8 @@ package com.iignaasii47.e_commerce_api.infrastructure.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.env.EnvironmentPostProcessor;
+import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
+import org.springframework.context.ApplicationListener;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 
@@ -16,13 +16,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-public class DotEnvEnvironmentPostProcessor implements EnvironmentPostProcessor {
+public class DotEnvEnvironmentPostProcessor implements ApplicationListener<ApplicationEnvironmentPreparedEvent> {
 
     private static final Logger log = LoggerFactory.getLogger(DotEnvEnvironmentPostProcessor.class);
     private static final String ENV_FILE = ".env";
 
     @Override
-    public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
+    public void onApplicationEvent(ApplicationEnvironmentPreparedEvent event) {
+        ConfigurableEnvironment environment = event.getEnvironment();
         Path envPath = findEnvFile();
         if (envPath == null) {
             log.debug("No .env file found in working directory or backend/ subdirectory");

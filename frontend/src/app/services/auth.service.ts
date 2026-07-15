@@ -81,7 +81,28 @@ export class AuthService {
     this.currentUser.set(null);
   }
 
+  private decodeToken(token: string): { exp: number } | null {
+    try {
+      const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+      return JSON.parse(atob(payload));
+    } catch {
+      return null;
+    }
+  }
+
+  private isTokenExpired(): boolean {
+    const token = localStorage.getItem('jwt_token');
+    if (!token) return true;
+    const decoded = this.decodeToken(token);
+    if (!decoded?.exp) return false;
+    return Date.now() >= decoded.exp * 1000;
+  }
+
   private restoreSession(): void {
+    if (this.isTokenExpired()) {
+      this.logout();
+      return;
+    }
     const token = localStorage.getItem('jwt_token');
     const raw = localStorage.getItem('user');
     if (token && raw) {

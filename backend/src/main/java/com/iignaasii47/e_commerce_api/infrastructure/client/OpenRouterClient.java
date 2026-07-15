@@ -28,7 +28,7 @@ public class OpenRouterClient implements AiClient {
     private static final String ROLE_KEY = "role";
     private static final String CONTENT_KEY = "content";
 
-    private final RestClient restClient;
+    RestClient restClient;
     private final List<String> allModels;
     private final AtomicReference<String> currentModel;
 
@@ -191,7 +191,7 @@ public class OpenRouterClient implements AiClient {
         try {
             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
             return mapper.readValue(argsJson, Map.class);
-        } catch (Exception e) {
+        } catch (Exception _) {
             log.warn("Failed to parse tool arguments JSON: {}", argsJson);
             return Map.of();
         }
@@ -223,7 +223,7 @@ public class OpenRouterClient implements AiClient {
     private String extractOpenRouterErrorMessage(HttpClientErrorException e) {
         try {
             byte[] responseBody = e.getResponseBodyAsByteArray();
-            if (responseBody != null && responseBody.length > 0) {
+            if (responseBody.length > 0) {
                 String body = new String(responseBody);
                 int msgStart = body.indexOf("\"message\":\"");
                 if (msgStart >= 0) {

@@ -33,7 +33,7 @@ public class ChatController {
                               @RequestHeader("Authorization") String authHeader) {
         Long userId = userIdExtractor.extract(authHeader);
         List<ChatMessage> history = request.getHistory().stream()
-                .map(dto -> new ChatMessage(mapRole(dto.getRole()), dto.getContent()))
+                .map(dto -> new ChatMessage(mapRole(dto.role()), dto.content()))
                 .toList();
 
         ChatResult result = chatUseCase.chat(request.getMessage(), history, userId);

@@ -11,10 +11,9 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.Date; // NOSONAR
+import java.util.Date;
 
 @Component
-@SuppressWarnings("java:S2143")
 public class JwtTokenProvider implements TokenService {
 
     private final SecretKey secretKey;

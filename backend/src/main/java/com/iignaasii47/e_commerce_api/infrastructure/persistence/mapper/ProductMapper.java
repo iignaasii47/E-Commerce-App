@@ -12,32 +12,32 @@ public class ProductMapper {
         if (entity == null) {
             return null;
         }
-        return new Product(
-                entity.getId(),
-                entity.getName(),
-                entity.getDescription(),
-                entity.getPrice(),
-                entity.getCategory(),
-                entity.getImageUrl(),
-                entity.getStock(),
-                entity.getRating()
-        );
+        return Product.builder()
+                .id(entity.getId())
+                .name(entity.getName())
+                .description(entity.getDescription())
+                .price(entity.getPrice())
+                .category(entity.getCategory())
+                .imageUrl(entity.getImageUrl())
+                .stock(entity.getStock())
+                .rating(entity.getRating())
+                .build();
     }
 
     public static ProductEntity toEntity(Product product) {
         if (product == null) {
             return null;
         }
-        return new ProductEntity(
-                product.getId(),
-                product.getName(),
-                product.getDescription(),
-                product.getPrice(),
-                product.getCategory(),
-                product.getImageUrl(),
-                product.getStock(),
-                product.getRating()
-        );
+        return ProductEntity.builder()
+                .id(product.getId())
+                .name(product.getName())
+                .description(product.getDescription())
+                .price(product.getPrice())
+                .category(product.getCategory())
+                .imageUrl(product.getImageUrl())
+                .stock(product.getStock())
+                .rating(product.getRating())
+                .build();
     }
 
 }

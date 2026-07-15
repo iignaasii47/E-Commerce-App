@@ -16,31 +16,20 @@ public class ProductResponse {
     private double rating;
 
     public ProductResponse() {
-    }
-
-    public ProductResponse(Long id, String name, String description, BigDecimal price,
-                           String category, String image, int stock, double rating) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.price = price;
-        this.category = category;
-        this.image = image;
-        this.stock = stock;
-        this.rating = rating;
+        // Required for JSON deserialization
     }
 
     public static ProductResponse from(Product product) {
-        return new ProductResponse(
-                product.getId(),
-                product.getName(),
-                product.getDescription(),
-                product.getPrice(),
-                product.getCategory(),
-                product.getImageUrl(),
-                product.getStock(),
-                product.getRating()
-        );
+        ProductResponse response = new ProductResponse();
+        response.id = product.getId();
+        response.name = product.getName();
+        response.description = product.getDescription();
+        response.price = product.getPrice();
+        response.category = product.getCategory();
+        response.image = product.getImageUrl();
+        response.stock = product.getStock();
+        response.rating = product.getRating();
+        return response;
     }
 
     public Long getId() {

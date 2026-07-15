@@ -10,24 +10,8 @@ class LoginRequestTest {
     void shouldCreateWithConstructor() {
         LoginRequest request = new LoginRequest("john@example.com", "secret123");
 
-        assertThat(request.getEmail()).isEqualTo("john@example.com");
-        assertThat(request.getPassword()).isEqualTo("secret123");
-    }
-
-    @Test
-    void shouldSetAndGetEmail() {
-        LoginRequest request = new LoginRequest();
-        request.setEmail("john@example.com");
-
-        assertThat(request.getEmail()).isEqualTo("john@example.com");
-    }
-
-    @Test
-    void shouldSetAndGetPassword() {
-        LoginRequest request = new LoginRequest();
-        request.setPassword("secret123");
-
-        assertThat(request.getPassword()).isEqualTo("secret123");
+        assertThat(request.email()).isEqualTo("john@example.com");
+        assertThat(request.password()).isEqualTo("secret123");
     }
 
 }

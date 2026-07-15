@@ -1,6 +1,5 @@
 package com.iignaasii47.e_commerce_api.domain.model;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ChatResult {

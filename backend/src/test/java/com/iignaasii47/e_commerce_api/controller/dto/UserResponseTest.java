@@ -1,70 +1,34 @@
 package com.iignaasii47.e_commerce_api.controller.dto;
 
 import com.iignaasii47.e_commerce_api.domain.model.User;
+import com.iignaasii47.e_commerce_api.util.TestFixtures;
 
 import org.junit.jupiter.api.Test;
-
-import java.time.LocalDateTime;
-import java.time.Month;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class UserResponseTest {
 
-    private static final LocalDateTime FIXED_TIME = LocalDateTime.of(2026, Month.JANUARY, 1, 12, 0);
-
     @Test
     void shouldMapUserToResponse() {
-        User user = new User(1L, "john", "john@example.com", "secret", FIXED_TIME);
+        User user = TestFixtures.aJohnUser();
 
         UserResponse response = UserResponse.from(user);
 
         assertThat(response.getId()).isEqualTo(1L);
         assertThat(response.getUsername()).isEqualTo("john");
         assertThat(response.getEmail()).isEqualTo("john@example.com");
-        assertThat(response.getCreatedAt()).isEqualTo(FIXED_TIME);
+        assertThat(response.getCreatedAt()).isEqualTo(TestFixtures.FIXED_TIME);
     }
 
     @Test
-    void shouldContainAllFields() {
-        UserResponse response = new UserResponse(1L, "john", "john@example.com", FIXED_TIME);
+    void shouldContainAllFieldsWithConstructor() {
+        UserResponse response = new UserResponse(1L, "john", "john@example.com", TestFixtures.FIXED_TIME);
 
         assertThat(response.getId()).isEqualTo(1L);
         assertThat(response.getUsername()).isEqualTo("john");
         assertThat(response.getEmail()).isEqualTo("john@example.com");
         assertThat(response.getCreatedAt()).isNotNull();
-    }
-
-    @Test
-    void shouldSetAndGetId() {
-        UserResponse response = new UserResponse();
-        response.setId(1L);
-
-        assertThat(response.getId()).isEqualTo(1L);
-    }
-
-    @Test
-    void shouldSetAndGetUsername() {
-        UserResponse response = new UserResponse();
-        response.setUsername("john");
-
-        assertThat(response.getUsername()).isEqualTo("john");
-    }
-
-    @Test
-    void shouldSetAndGetEmail() {
-        UserResponse response = new UserResponse();
-        response.setEmail("john@example.com");
-
-        assertThat(response.getEmail()).isEqualTo("john@example.com");
-    }
-
-    @Test
-    void shouldSetAndGetCreatedAt() {
-        UserResponse response = new UserResponse();
-        response.setCreatedAt(FIXED_TIME);
-
-        assertThat(response.getCreatedAt()).isEqualTo(FIXED_TIME);
     }
 
 }

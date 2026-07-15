@@ -2,6 +2,7 @@ package com.iignaasii47.e_commerce_api.controller;
 
 import com.iignaasii47.e_commerce_api.application.port.in.ProductUseCase;
 import com.iignaasii47.e_commerce_api.domain.model.Product;
+import com.iignaasii47.e_commerce_api.util.TestFixtures;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +10,6 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,11 +27,9 @@ class ProductControllerTest {
     @MockitoBean
     private ProductUseCase productUseCase;
 
-    private final Product product = new Product(1L, "Keyboard", "A mechanical keyboard",
-            new BigDecimal("149.99"), "peripherals", "http://img.url", 10, 4.5);
-
     @Test
     void shouldReturnAllProducts() throws Exception {
+        Product product = TestFixtures.aKeyboardProduct();
         when(productUseCase.getAllProducts()).thenReturn(List.of(product));
 
         mockMvc.perform(get("/api/products"))
@@ -47,6 +45,7 @@ class ProductControllerTest {
 
     @Test
     void shouldReturnProductById() throws Exception {
+        Product product = TestFixtures.aKeyboardProduct();
         when(productUseCase.getProductById(1L)).thenReturn(Optional.of(product));
 
         mockMvc.perform(get("/api/products/1"))
@@ -57,6 +56,7 @@ class ProductControllerTest {
 
     @Test
     void shouldFilterByCategory() throws Exception {
+        Product product = TestFixtures.aKeyboardProduct();
         when(productUseCase.getProductsByCategory("peripherals")).thenReturn(List.of(product));
 
         mockMvc.perform(get("/api/products").param("category", "peripherals"))
@@ -66,6 +66,7 @@ class ProductControllerTest {
 
     @Test
     void shouldSearchProducts() throws Exception {
+        Product product = TestFixtures.aKeyboardProduct();
         when(productUseCase.searchProducts("keyboard")).thenReturn(List.of(product));
 
         mockMvc.perform(get("/api/products").param("search", "keyboard"))

@@ -1,6 +1,7 @@
 package com.iignaasii47.e_commerce_api.controller.dto;
 
 import com.iignaasii47.e_commerce_api.domain.model.Product;
+import com.iignaasii47.e_commerce_api.util.TestFixtures;
 
 import org.junit.jupiter.api.Test;
 
@@ -12,25 +13,25 @@ class ProductResponseTest {
 
     @Test
     void shouldMapProductToResponse() {
-        Product product = new Product(1L, "Keyboard", "A keyboard",
-                new BigDecimal("149.99"), "peripherals", "http://img.url", 10, 4.5);
+        Product product = TestFixtures.aKeyboardProduct();
 
         ProductResponse response = ProductResponse.from(product);
 
-        assertThat(response.getId()).isEqualTo(1L);
-        assertThat(response.getName()).isEqualTo("Keyboard");
-        assertThat(response.getDescription()).isEqualTo("A keyboard");
-        assertThat(response.getPrice()).isEqualByComparingTo("149.99");
-        assertThat(response.getCategory()).isEqualTo("peripherals");
-        assertThat(response.getImage()).isEqualTo("http://img.url");
-        assertThat(response.getStock()).isEqualTo(10);
-        assertThat(response.getRating()).isEqualTo(4.5);
+        assertThat(response).extracting(ProductResponse::getId, ProductResponse::getName,
+                        ProductResponse::getDescription, ProductResponse::getPrice,
+                        ProductResponse::getCategory, ProductResponse::getImage,
+                        ProductResponse::getStock, ProductResponse::getRating)
+                .containsExactly(product.getId(), product.getName(), product.getDescription(),
+                        product.getPrice(), product.getCategory(), product.getImageUrl(),
+                        product.getStock(), product.getRating());
     }
 
     @Test
     void shouldMapImageUrlToImageField() {
-        Product product = new Product(1L, "Test", "desc",
-                BigDecimal.ONE, "cat", "https://example.com/img.png", 0, 0);
+        Product product = Product.builder()
+                .id(1L).name("Test").description("desc")
+                .price(BigDecimal.ONE).category("cat").imageUrl("https://example.com/img.png")
+                .stock(0).rating(0).build();
 
         ProductResponse response = ProductResponse.from(product);
 

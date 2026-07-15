@@ -14,6 +14,7 @@ public class CartItemResponse {
     private BigDecimal subtotal;
 
     public CartItemResponse() {
+        // Required for JSON deserialization
     }
 
     public static CartItemResponse from(CartItem item) {

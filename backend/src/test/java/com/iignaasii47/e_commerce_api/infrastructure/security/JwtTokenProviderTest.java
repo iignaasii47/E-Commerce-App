@@ -1,15 +1,21 @@
 package com.iignaasii47.e_commerce_api.infrastructure.security;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+
 import org.junit.jupiter.api.Test;
+
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class JwtTokenProviderTest {
 
-    private final JwtTokenProvider tokenProvider = new JwtTokenProvider(
-            "myTestSecretKeyThatIsLongEnoughForHS256Algorithm123",
-            3600000L
-    );
+    private static final String SECRET = "myTestSecretKeyThatIsLongEnoughForHS256Algorithm123";
+
+    private final JwtTokenProvider tokenProvider = new JwtTokenProvider(SECRET, 3600000L);
 
     @Test
     void shouldGenerateToken() {
@@ -34,4 +40,46 @@ class JwtTokenProviderTest {
         assertThat(token.split("\\.")).hasSize(3);
     }
 
+    @Test
+    void shouldGenerateTokenWithCorrectSubject() {
+        String token = tokenProvider.generateToken(42L, "alice");
+
+        SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
+        Claims claims = Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+
+        assertThat(claims.getSubject()).isEqualTo("alice");
+    }
+
+    @Test
+    void shouldGenerateTokenWithUserIdClaim() {
+        String token = tokenProvider.generateToken(42L, "alice");
+
+        SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
+        Claims claims = Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+
+        assertThat(claims.get("userId", Long.class)).isEqualTo(42L);
+    }
+
+    @Test
+    void shouldGenerateTokenWithExpirationInTheFuture() {
+        String token = tokenProvider.generateToken(1L, "john");
+
+        SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
+        Claims claims = Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+
+        assertThat(claims.getExpiration())
+                .isAfter(claims.getIssuedAt());
+    }
 }

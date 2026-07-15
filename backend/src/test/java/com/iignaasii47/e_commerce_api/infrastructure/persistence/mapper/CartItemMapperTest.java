@@ -17,12 +17,10 @@ class CartItemMapperTest {
 
         CartItem item = CartItemMapper.toDomain(entity);
 
-        assertThat(item.getId()).isEqualTo(1L);
-        assertThat(item.getUserId()).isEqualTo(10L);
-        assertThat(item.getProductId()).isEqualTo(5L);
-        assertThat(item.getProductName()).isEqualTo("Keyboard");
+        assertThat(item).extracting(CartItem::getId, CartItem::getUserId, CartItem::getProductId,
+                        CartItem::getProductName, CartItem::getQuantity)
+                .containsExactly(1L, 10L, 5L, "Keyboard", 2);
         assertThat(item.getUnitPrice()).isEqualByComparingTo("149.99");
-        assertThat(item.getQuantity()).isEqualTo(2);
     }
 
     @Test
@@ -31,11 +29,11 @@ class CartItemMapperTest {
 
         CartItemEntity entity = CartItemMapper.toEntity(item);
 
-        assertThat(entity.getUserId()).isEqualTo(10L);
-        assertThat(entity.getProductId()).isEqualTo(5L);
-        assertThat(entity.getProductName()).isEqualTo("Keyboard");
+        assertThat(entity).extracting(CartItemEntity::getId, CartItemEntity::getUserId,
+                        CartItemEntity::getProductId, CartItemEntity::getProductName,
+                        CartItemEntity::getQuantity)
+                .containsExactly(1L, 10L, 5L, "Keyboard", 2);
         assertThat(entity.getUnitPrice()).isEqualByComparingTo("149.99");
-        assertThat(entity.getQuantity()).isEqualTo(2);
     }
 
     @Test

@@ -29,14 +29,14 @@ public class UserController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public UserResponse register(@Valid @RequestBody CreateUserRequest request) {
-        User user = new User(null, request.getUsername(), request.getEmail(), request.getPassword(), null);
+        User user = new User(null, request.username(), request.email(), request.password(), null);
         User created = userUseCase.register(user);
         return UserResponse.from(created);
     }
 
     @PostMapping("/login")
     public LoginResponse login(@Valid @RequestBody LoginRequest request) {
-        return LoginResponse.from(userUseCase.login(request.getEmail(), request.getPassword()));
+        return LoginResponse.from(userUseCase.login(request.email(), request.password()));
     }
 
 }

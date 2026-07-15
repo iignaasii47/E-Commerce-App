@@ -2,7 +2,6 @@ package com.iignaasii47.e_commerce_api.domain.model;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;

@@ -15,8 +15,8 @@ class ChatRequestTest {
 
         assertThat(request.getMessage()).isEqualTo("current message");
         assertThat(request.getHistory()).hasSize(1);
-        assertThat(request.getHistory().get(0).getRole()).isEqualTo("user");
-        assertThat(request.getHistory().get(0).getContent()).isEqualTo("previous message");
+        assertThat(request.getHistory().get(0).role()).isEqualTo("user");
+        assertThat(request.getHistory().get(0).content()).isEqualTo("previous message");
     }
 
     @Test

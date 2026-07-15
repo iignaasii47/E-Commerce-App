@@ -2,7 +2,6 @@ package com.iignaasii47.e_commerce_api.infrastructure.persistence.repository;
 
 import com.iignaasii47.e_commerce_api.domain.model.Product;
 import com.iignaasii47.e_commerce_api.domain.port.out.ProductRepository;
-import com.iignaasii47.e_commerce_api.infrastructure.persistence.entity.ProductEntity;
 import com.iignaasii47.e_commerce_api.infrastructure.persistence.mapper.ProductMapper;
 
 import org.springframework.stereotype.Component;

@@ -21,6 +21,10 @@ public class ChatUseCaseService implements ChatUseCase {
 
     private static final int MAX_TOOL_ITERATIONS = 5;
 
+    private static final String KEY_DESCRIPTION = "description";
+    private static final String KEY_PRODUCT_ID = "product_id";
+    private static final String KEY_TYPE_INTEGER = "integer";
+
     private static final String APP_DESCRIPTION = """
             You are a helpful assistant for a terminal-themed e-commerce web application called "term-shop".
             
@@ -37,22 +41,22 @@ public class ChatUseCaseService implements ChatUseCase {
 
     private static final List<Map<String, Object>> TOOLS = List.of(
             toolDef("search_products", "Search for products by name or category",
-                    Map.of("query", Map.of("type", "string", "description", "Search query")),
+                    Map.of("query", Map.of("type", "string", KEY_DESCRIPTION, "Search query")),
                     List.of("query")),
             toolDef("get_product", "Get details about a specific product by ID",
-                    Map.of("product_id", Map.of("type", "integer", "description", "Product ID")),
-                    List.of("product_id")),
+                    Map.of(KEY_PRODUCT_ID, Map.of("type", KEY_TYPE_INTEGER, KEY_DESCRIPTION, "Product ID")),
+                    List.of(KEY_PRODUCT_ID)),
             toolDef("list_categories", "List all available product categories",
                     Map.of(),
                     List.of()),
             toolDef("add_to_cart", "Add a product to the user's shopping cart",
                     Map.of(
-                            "product_id", Map.of("type", "integer", "description", "Product ID"),
-                            "quantity", Map.of("type", "integer", "description", "Quantity to add (default 1)")
+                            KEY_PRODUCT_ID, Map.of("type", KEY_TYPE_INTEGER, KEY_DESCRIPTION, "Product ID"),
+                            "quantity", Map.of("type", KEY_TYPE_INTEGER, KEY_DESCRIPTION, "Quantity to add (default 1)")
                     ),
-                    List.of("product_id")),
+                    List.of(KEY_PRODUCT_ID)),
             toolDef("remove_from_cart", "Remove a product from the user's shopping cart by cart item ID",
-                    Map.of("cart_item_id", Map.of("type", "integer", "description", "Cart item ID to remove")),
+                    Map.of("cart_item_id", Map.of("type", KEY_TYPE_INTEGER, KEY_DESCRIPTION, "Cart item ID to remove")),
                     List.of("cart_item_id")),
             toolDef("view_cart", "Show the current contents of the user's shopping cart",
                     Map.of(),
@@ -107,9 +111,9 @@ public class ChatUseCaseService implements ChatUseCase {
         return Map.of(
                 "type", "function",
                 "function", Map.of(
-                        "name", name,
-                        "description", description,
-                        "parameters", Map.of(
+            "name", name,
+                    KEY_DESCRIPTION, description,
+                    "parameters", Map.of(
                                 "type", "object",
                                 "properties", properties,
                                 "required", required

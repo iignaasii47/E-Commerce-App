@@ -2,42 +2,36 @@ package com.iignaasii47.e_commerce_api.infrastructure.persistence.mapper;
 
 import com.iignaasii47.e_commerce_api.domain.model.User;
 import com.iignaasii47.e_commerce_api.infrastructure.persistence.entity.UserEntity;
+import com.iignaasii47.e_commerce_api.util.TestFixtures;
 
 import org.junit.jupiter.api.Test;
-
-import java.time.LocalDateTime;
-import java.time.Month;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class UserMapperTest {
 
-    private static final LocalDateTime FIXED_TIME = LocalDateTime.of(2026, Month.JANUARY, 1, 12, 0);
-
     @Test
     void shouldMapEntityToDomain() {
-        UserEntity entity = new UserEntity(1L, "john", "john@example.com", "encrypted", FIXED_TIME);
+        UserEntity entity = TestFixtures.aJohnUserEntity();
 
         User user = UserMapper.toDomain(entity);
 
-        assertThat(user.getId()).isEqualTo(1L);
-        assertThat(user.getUsername()).isEqualTo("john");
-        assertThat(user.getEmail()).isEqualTo("john@example.com");
-        assertThat(user.getPassword()).isEqualTo("encrypted");
-        assertThat(user.getCreatedAt()).isEqualTo(FIXED_TIME);
+        assertThat(user).extracting(User::getId, User::getUsername, User::getEmail,
+                        User::getPassword, User::getCreatedAt)
+                .containsExactly(entity.getId(), entity.getUsername(), entity.getEmail(),
+                        entity.getPassword(), entity.getCreatedAt());
     }
 
     @Test
     void shouldMapDomainToEntity() {
-        User user = new User(1L, "john", "john@example.com", "encrypted", FIXED_TIME);
+        User user = TestFixtures.aJohnUser();
 
         UserEntity entity = UserMapper.toEntity(user);
 
-        assertThat(entity.getId()).isEqualTo(1L);
-        assertThat(entity.getUsername()).isEqualTo("john");
-        assertThat(entity.getEmail()).isEqualTo("john@example.com");
-        assertThat(entity.getPassword()).isEqualTo("encrypted");
-        assertThat(entity.getCreatedAt()).isEqualTo(FIXED_TIME);
+        assertThat(entity).extracting(UserEntity::getId, UserEntity::getUsername,
+                        UserEntity::getEmail, UserEntity::getPassword, UserEntity::getCreatedAt)
+                .containsExactly(user.getId(), user.getUsername(), user.getEmail(),
+                        user.getPassword(), user.getCreatedAt());
     }
 
     @Test
