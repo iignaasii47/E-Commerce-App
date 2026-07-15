@@ -83,7 +83,7 @@ export class AuthService {
 
   private decodeToken(token: string): { exp: number } | null {
     try {
-      const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+      const payload = token.split('.')[1].replaceAll('-', '+').replaceAll('_', '/');
       return JSON.parse(atob(payload));
     } catch {
       return null;

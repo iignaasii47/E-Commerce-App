@@ -3,14 +3,19 @@ package com.iignaasii47.e_commerce_api.infrastructure.client;
 import com.iignaasii47.e_commerce_api.domain.exception.AiServiceException;
 import com.iignaasii47.e_commerce_api.domain.model.ChatAiResponse;
 import com.iignaasii47.e_commerce_api.domain.model.ChatMessage;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -19,6 +24,9 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 class OpenRouterClientTest {
+
+    private static final List<ChatMessage> SINGLE_USER_MSG = List.of(ChatMessage.user("Hi"));
+    private static final String SYSTEM_PROMPT = "You are helpful";
 
     private MockRestServiceServer mockServer;
     private OpenRouterClient client;
@@ -29,13 +37,10 @@ class OpenRouterClientTest {
         RestClient.Builder builder = RestClient.builder();
         mockServer = MockRestServiceServer.bindTo(builder).build();
         restClient = builder.build();
-
         client = newClient(restClient, "model-a", "model-b");
     }
 
     private OpenRouterClient newClient(RestClient restClient, String model, String... fallbacks) {
-        var models = new java.util.ArrayList<>(List.of(model));
-        models.addAll(List.of(fallbacks));
         OpenRouterProperties props = new OpenRouterProperties();
         props.setApiKey("test-key");
         props.setApiUrl("http://localhost:8080");
@@ -57,8 +62,7 @@ class OpenRouterClientTest {
                         }
                         """, MediaType.APPLICATION_JSON));
 
-        ChatAiResponse response = client.sendMessage(
-                List.of(ChatMessage.user("Hi")), "You are helpful", List.of());
+        ChatAiResponse response = client.sendMessage(SINGLE_USER_MSG, SYSTEM_PROMPT, List.of());
 
         assertThat(response.hasToolCalls()).isFalse();
         assertThat(response.getContent()).isEqualTo("Hello, how can I help you?");
@@ -105,8 +109,7 @@ class OpenRouterClientTest {
                         }
                         """, MediaType.APPLICATION_JSON));
 
-        ChatAiResponse response = client.sendMessage(
-                List.of(ChatMessage.user("Hi")), "prompt", List.of());
+        ChatAiResponse response = client.sendMessage(SINGLE_USER_MSG, "prompt", List.of());
 
         assertThat(response.getContent()).isEqualTo("fallback response");
     }
@@ -116,56 +119,39 @@ class OpenRouterClientTest {
         mockServer.expect(requestTo("/chat/completions")).andRespond(withServerError());
         mockServer.expect(requestTo("/chat/completions")).andRespond(withServerError());
 
-        assertThatThrownBy(() -> client.sendMessage(
-                List.of(ChatMessage.user("Hi")), "prompt", List.of()))
+        assertThatThrownBy(() -> client.sendMessage(SINGLE_USER_MSG, "prompt", List.of()))
                 .isInstanceOf(AiServiceException.class)
                 .hasMessageContaining("All available models");
     }
 
-    @Test
-    void shouldHandleEmptyChoices() {
+    @ParameterizedTest
+    @MethodSource("malformedResponses")
+    void shouldThrowOnMalformedResponse(String responseJson) {
         client = newClient(restClient, "only-model");
         mockServer.expect(requestTo("/chat/completions"))
-                .andRespond(withSuccess("""
+                .andRespond(withSuccess(responseJson, MediaType.APPLICATION_JSON));
+
+        assertThatThrownBy(() -> client.sendMessage(SINGLE_USER_MSG, "prompt", List.of()))
+                .isInstanceOf(AiServiceException.class)
+                .hasMessageContaining("All available models");
+    }
+
+    static Stream<Arguments> malformedResponses() {
+        return Stream.of(
+                Arguments.of("""
                         { "choices": [] }
-                        """, MediaType.APPLICATION_JSON));
-
-        assertThatThrownBy(() -> client.sendMessage(
-                List.of(ChatMessage.user("Hi")), "prompt", List.of()))
-                .isInstanceOf(AiServiceException.class)
-                .hasMessageContaining("All available models");
-    }
-
-    @Test
-    void shouldHandleNullMessage() {
-        client = newClient(restClient, "only-model");
-        mockServer.expect(requestTo("/chat/completions"))
-                .andRespond(withSuccess("""
+                        """),
+                Arguments.of("""
                         {
                             "choices": [{ "message": null }]
                         }
-                        """, MediaType.APPLICATION_JSON));
-
-        assertThatThrownBy(() -> client.sendMessage(
-                List.of(ChatMessage.user("Hi")), "prompt", List.of()))
-                .isInstanceOf(AiServiceException.class)
-                .hasMessageContaining("All available models");
-    }
-
-    @Test
-    void shouldHandleNullContentAndNoToolCalls() {
-        client = newClient(restClient, "only-model");
-        mockServer.expect(requestTo("/chat/completions"))
-                .andRespond(withSuccess("""
+                        """),
+                Arguments.of("""
                         {
                             "choices": [{ "message": { "content": null } }]
                         }
-                        """, MediaType.APPLICATION_JSON));
-
-        assertThatThrownBy(() -> client.sendMessage(
-                List.of(ChatMessage.user("Hi")), "prompt", List.of()))
-                .isInstanceOf(AiServiceException.class)
-                .hasMessageContaining("All available models");
+                        """)
+        );
     }
 
     @Test
