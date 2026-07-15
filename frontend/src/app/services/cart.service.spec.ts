@@ -100,6 +100,35 @@ describe('CartService', () => {
     expect(service.itemCount()).toBe(0);
   });
 
+  it('syncQuantity should handle API error silently', () => {
+    service.items.set([{ id: 5, productId: 1, productName: 'X', unitPrice: 10, quantity: 2, subtotal: 20 }]);
+
+    service.updateQuantity(5, 1, 0);
+    expect(service.items()[0].quantity).toBe(0);
+  });
+
+  it('should debounce updateQuantity and not call syncQuantity immediately', () => {
+    service.items.set([{ id: 5, productId: 1, productName: 'X', unitPrice: 10, quantity: 2, subtotal: 20 }]);
+
+    service.updateQuantity(5, 1, 3);
+    expect(service.items()[0].quantity).toBe(3);
+
+    const pendingTimeouts = (service as any).pendingTimeouts as Map<number, ReturnType<typeof setTimeout>>;
+    expect(pendingTimeouts.has(5)).toBe(true);
+  });
+
+  it('should cancel previous pending timeout on repeated updateQuantity', () => {
+    service.items.set([{ id: 5, productId: 1, productName: 'X', unitPrice: 10, quantity: 2, subtotal: 20 }]);
+
+    service.updateQuantity(5, 1, 3);
+    const timeout1 = (service as any).pendingTimeouts.get(5);
+
+    service.updateQuantity(5, 1, 4);
+    const timeout2 = (service as any).pendingTimeouts.get(5);
+
+    expect(timeout2).not.toBe(timeout1);
+  });
+
   it('loadCart should fetch from API', () => {
     const items = [
       { id: 1, productId: 1, productName: 'A', unitPrice: 10, quantity: 2, subtotal: 20 },

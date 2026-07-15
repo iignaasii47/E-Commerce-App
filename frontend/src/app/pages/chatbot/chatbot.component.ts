@@ -275,7 +275,7 @@ export class ChatbotComponent implements OnInit, AfterViewInit {
 
   typewriterSpeed = 10;
 
-  private commandHistory: string[] = [];
+  private readonly commandHistory: string[] = [];
   private historyIndex = -1;
   private isTypingFlag = false;
   private pendingTypewriter: ReturnType<typeof setInterval> | null = null;
@@ -433,9 +433,10 @@ export class ChatbotComponent implements OnInit, AfterViewInit {
         }
         this.messages.update((msgs) => {
           const updated = [...msgs];
+          const last = updated.at(-1)!;
           updated[updated.length - 1] = {
-            ...updated[updated.length - 1],
-            content: updated[updated.length - 1].content + chunk,
+            ...last,
+            content: last.content + chunk,
           };
           return updated;
         });

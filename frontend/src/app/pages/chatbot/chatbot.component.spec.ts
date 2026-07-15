@@ -359,4 +359,84 @@ describe('ChatbotComponent', () => {
     component.onKeydown(downEvent);
     expect(component.inputValue).toBe('second');
   });
+
+  it('should not navigate arrow up with empty history', async () => {
+    const { component } = await setup();
+    const event = new KeyboardEvent('keydown', { key: 'ArrowUp' });
+    component.onKeydown(event);
+    expect(component.inputValue).toBe('');
+  });
+
+  it('should reset to empty on arrow down when at newest', async () => {
+    const { component } = await setup();
+    const chatbot = TestBed.inject(ChatbotService);
+    vi.spyOn(chatbot, 'sendMessage').mockReturnValue(of({ reply: 'ok', toolsUsed: [] }));
+
+    component.inputValue = 'hello';
+    component.sendMessage();
+
+    const upEvent = new KeyboardEvent('keydown', { key: 'ArrowUp' });
+    component.onKeydown(upEvent);
+    expect(component.inputValue).toBe('hello');
+
+    const downEvent = new KeyboardEvent('keydown', { key: 'ArrowDown' });
+    component.onKeydown(downEvent);
+    expect(component.inputValue).toBe('');
+  });
+
+  it('should ignore other keydown keys', async () => {
+    const { component } = await setup();
+    component.inputValue = 'test';
+    const event = new KeyboardEvent('keydown', { key: 'Escape' });
+    const preventDefault = vi.spyOn(event, 'preventDefault');
+    component.onKeydown(event);
+    expect(preventDefault).not.toHaveBeenCalled();
+    expect(component.inputValue).toBe('test');
+  });
+
+  it('isTyping should return flag state', async () => {
+    const { component } = await setup();
+    expect(component.isTyping()).toBe(false);
+  });
+
+  it('formatTimestamp should format date correctly', async () => {
+    const { component } = await setup();
+    const date = new Date('2026-06-15T08:05:03');
+    expect(component.formatTimestamp(date)).toBe('08:05:03');
+  });
+
+  it('formatTimestamp should pad single digits', async () => {
+    const { component } = await setup();
+    const date = new Date('2026-01-01T01:01:01');
+    expect(component.formatTimestamp(date)).toBe('01:01:01');
+  });
+
+  it('updateCursorPos should set cursor position from event', async () => {
+    const { component } = await setup();
+    const event = { target: { selectionStart: 3 } } as unknown as Event;
+    component.updateCursorPos(event);
+    expect(component.cursorPos()).toBe(3);
+  });
+
+  it('updateCursorPos should fallback to length when selectionStart is null', async () => {
+    const { component } = await setup();
+    component.inputValue = 'hello';
+    const event = { target: { selectionStart: null } } as unknown as Event;
+    component.updateCursorPos(event);
+    expect(component.cursorPos()).toBe(5);
+  });
+
+  it('should not send message when trimmed text is empty', async () => {
+    const { component } = await setup();
+    const chatbot = TestBed.inject(ChatbotService);
+    vi.spyOn(chatbot, 'getGreeting').mockReturnValue(of('greeting'));
+    vi.spyOn(chatbot, 'sendMessage');
+
+    component.inputValue = '';
+    component.sendMessage();
+    component.inputValue = '   ';
+    component.sendMessage();
+
+    expect(chatbot.sendMessage).not.toHaveBeenCalled();
+  });
 });
