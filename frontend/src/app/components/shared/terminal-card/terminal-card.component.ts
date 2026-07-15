@@ -8,33 +8,45 @@ import { Product } from '../../../models';
   imports: [RouterLink],
   template: `
     <a class="t-card" [routerLink]="['/products', product().id]">
-      <div class="t-card__header">
-        <span class="t-card__id">#{{ product().id }}</span>
-        <span class="t-card__category">{{ product().category }}</span>
-        <span class="t-card__stock" [class.low]="product().stock < 10">
-          stock:{{ product().stock }}
-        </span>
-      </div>
-      <div class="t-card__body">
-        <h3 class="t-card__name">{{ product().name }}</h3>
-        <p class="t-card__desc">{{ product().description }}</p>
-      </div>
-      <div class="t-card__footer">
-        <span class="t-card__price">\${{ product().price.toFixed(2) }}</span>
-        <span class="t-card__rating">
-          @for (star of getStars(); track star) {
-            <span class="star filled">*</span>
-          }@empty {
-            <span class="star">-</span>
+      <div class="t-card__image-wrap">
+        <div class="t-card__image-frame">
+          @if (product().image) {
+            <img [src]="product().image" [alt]="product().name" class="t-card__img" />
+          } @else {
+            <span class="t-card__img-placeholder">*</span>
           }
-          {{ product().rating }}
-        </span>
+        </div>
+      </div>
+      <div class="t-card__info">
+        <div class="t-card__header">
+          <span class="t-card__id">#{{ product().id }}</span>
+          <span class="t-card__category">{{ product().category }}</span>
+          <span class="t-card__stock" [class.low]="product().stock < 10">
+            stock:{{ product().stock }}
+          </span>
+        </div>
+        <div class="t-card__body">
+          <h3 class="t-card__name">{{ product().name }}</h3>
+          <p class="t-card__desc">{{ product().description }}</p>
+        </div>
+        <div class="t-card__footer">
+          <span class="t-card__price">\${{ product().price.toFixed(2) }}</span>
+          <span class="t-card__rating">
+            @for (star of getStars(); track star) {
+              <span class="star filled">*</span>
+            }@empty {
+              <span class="star">-</span>
+            }
+            {{ product().rating }}
+          </span>
+        </div>
       </div>
     </a>
   `,
   styles: `
     .t-card {
-      display: block;
+      display: flex;
+      gap: 12px;
       border: 1px solid var(--border);
       background: var(--bg-secondary);
       padding: 12px 14px;
@@ -51,6 +63,37 @@ import { Product } from '../../../models';
           color: var(--accent-green);
         }
       }
+    }
+
+    .t-card__image-wrap {
+      flex-shrink: 0;
+    }
+
+    .t-card__image-frame {
+      width: 70px;
+      height: 70px;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background: var(--bg-primary);
+    }
+
+    .t-card__img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .t-card__img-placeholder {
+      color: var(--text-muted);
+      font-size: 18px;
+    }
+
+    .t-card__info {
+      flex: 1;
+      min-width: 0;
     }
 
     .t-card__header {
