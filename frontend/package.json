@@ -6,7 +6,10 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "ci:typecheck": "tsc --noEmit",
+    "ci:test": "ng test --watch=false --code-coverage",
+    "ci:build": "ng build"
   },
   "private": true,
   "packageManager": "npm@11.13.0",

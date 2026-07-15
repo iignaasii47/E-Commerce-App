@@ -19,7 +19,7 @@ This repository is stronger than a basic CRUD portfolio app because it demonstra
 
 ## Highest-Priority Conclusions
 
-1. Rotate the leaked Sonar token, remove tracked `.env` files, and clean git history if this repo was pushed.
+1. (DONE) Rotate the leaked Sonar token, remove tracked `.env` files, and clean git history if this repo was pushed.
 2. Add CI, Docker Compose, Flyway migrations, Spring Security, OpenAPI, and a real README before presenting this as a backend portfolio project.
 3. Fix production config immediately: no hardcoded DB credentials, no hardcoded JWT secret, no `ddl-auto=update`, no always-running destructive seed SQL.
 4. Improve API correctness: return proper `404`s, use request DTOs for mutations, validate inputs, add pagination, and standardize error responses.
