@@ -35,17 +35,6 @@ import { TerminalButtonComponent } from '../../../components/shared/terminal-but
               </span>
             </div>
 
-            @if (p.image) {
-              <div class="detail-image-viewer">
-                <div class="viewer-title-bar">
-                  <span class="viewer-title">$ cat product-{{ p.id }}.jpg</span>
-                </div>
-                <div class="viewer-body">
-                  <img [src]="p.image" [alt]="p.name" class="detail-image" />
-                </div>
-              </div>
-            }
-
             <div class="product-description">
               <p class="desc-label">// description</p>
               <p>{{ p.description }}</p>
@@ -150,40 +139,6 @@ import { TerminalButtonComponent } from '../../../components/shared/terminal-but
     .star {
       color: var(--text-muted);
       &.filled { color: var(--accent-amber); }
-    }
-
-    .detail-image-viewer {
-      border: 1px solid var(--border);
-      margin-bottom: 16px;
-      background: var(--bg-primary);
-    }
-
-    .viewer-title-bar {
-      display: flex;
-      align-items: center;
-      padding: 6px 10px;
-      background: var(--bg-secondary);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .viewer-title {
-      font-size: 11px;
-      color: var(--accent-green);
-    }
-
-    .viewer-body {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 12px;
-      min-height: 200px;
-    }
-
-    .detail-image {
-      max-width: 100%;
-      max-height: 400px;
-      object-fit: contain;
-      border: 1px solid var(--border);
     }
 
     .desc-label {
