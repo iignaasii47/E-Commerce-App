@@ -39,6 +39,9 @@ testem.log
 /typings
 __screenshots__/
 
+# Environment
+.env
+
 # SonarQube
 .scannerwork/
 report-task.txt
