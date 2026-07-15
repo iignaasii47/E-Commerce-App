@@ -30,6 +30,9 @@ jobs:
           distribution: 'zulu'
           cache: 'maven'
 
+      - name: Make mvnw executable
+        run: chmod +x mvnw
+
       - name: Build & Test
         run: ./mvnw verify -B
         env:
