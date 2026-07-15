@@ -8,7 +8,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "ci:typecheck": "tsc --noEmit",
-    "ci:test": "ng test --watch=false --code-coverage",
+    "ci:test": "ng test --watch=false --coverage --coverage-reporters lcov",
     "ci:build": "ng build"
   },
   "private": true,
