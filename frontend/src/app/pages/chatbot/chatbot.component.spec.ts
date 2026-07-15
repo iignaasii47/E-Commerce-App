@@ -17,6 +17,7 @@ describe('ChatbotComponent', () => {
     const fixture = TestBed.createComponent(ChatbotComponent);
     httpMock.expectOne(environment.apiUrl + '/api/cart').flush([]);
     const component = fixture.componentInstance;
+    component.typewriterSpeed = 0;
     return { fixture, component, httpMock };
   }
 
@@ -59,22 +60,21 @@ describe('ChatbotComponent', () => {
     expect(component.messages()[0].role).toBe('bot');
   });
 
-  it('should show typing indicator when loading', async () => {
+  it('should show loading spinner in chat when loading', async () => {
     const { fixture, component } = await setup();
     component.isLoading.set(true);
     fixture.detectChanges();
-    const indicator = fixture.nativeElement.querySelector('.chat__typing-indicator') as HTMLElement;
-    expect(indicator).toBeTruthy();
-    expect(indicator.textContent).toContain('typing');
+    const spinner = fixture.nativeElement.querySelector('.chat__spinner');
+    expect(spinner).toBeTruthy();
   });
 
-  it('should hide typing indicator when not loading', async () => {
+  it('should hide loading spinner when not loading', async () => {
     const { fixture, component } = await setup();
     const chatbot = TestBed.inject(ChatbotService);
     vi.spyOn(chatbot, 'getGreeting').mockReturnValue(of('greeting'));
     fixture.detectChanges();
     expect(component.isLoading()).toBe(false);
-    expect(fixture.nativeElement.querySelector('.chat__typing-indicator')).toBeFalsy();
+    expect(fixture.nativeElement.querySelector('.chat__spinner')).toBeFalsy();
   });
 
   it('should render messages in the chat', async () => {
@@ -300,7 +300,63 @@ describe('ChatbotComponent', () => {
     component.sendMessage();
     fixture.detectChanges();
 
-    // no pending HTTP request should exist since loadCart wasn't called
     httpMock.verify();
+  });
+
+  it('should clear messages on clear command', async () => {
+    const { component } = await setup();
+    const chatbot = TestBed.inject(ChatbotService);
+    vi.spyOn(chatbot, 'getGreeting').mockReturnValue(of('greeting'));
+
+    component.messages.set([
+      { role: 'user', content: 'hello', timestamp: new Date() },
+      { role: 'bot', content: 'hi', timestamp: new Date() },
+    ]);
+    component.inputValue = 'clear';
+    component.sendMessage();
+
+    expect(component.messages().length).toBe(0);
+    expect(component.inputValue).toBe('');
+  });
+
+  it('should show timestamps on messages', async () => {
+    const { fixture, component } = await setup();
+    const chatbot = TestBed.inject(ChatbotService);
+    vi.spyOn(chatbot, 'getGreeting').mockReturnValue(of('greeting'));
+    fixture.detectChanges();
+
+    component.messages.set([
+      { role: 'user', content: 'hello', timestamp: new Date('2026-01-01T12:30:45') },
+    ]);
+    fixture.detectChanges();
+
+    const timestamp = fixture.nativeElement.querySelector('.chat__prompt-timestamp');
+    expect(timestamp).toBeTruthy();
+    expect(timestamp.textContent).toContain('12:30:45');
+  });
+
+  it('should navigate command history on arrow up/down', async () => {
+    const { component } = await setup();
+    const chatbot = TestBed.inject(ChatbotService);
+    vi.spyOn(chatbot, 'sendMessage').mockReturnValue(of({ reply: 'ok', toolsUsed: [] }));
+
+    component.inputValue = 'first';
+    component.sendMessage();
+    expect(component['commandHistory'].length).toBe(1);
+
+    component.inputValue = 'second';
+    component.sendMessage();
+    expect(component['commandHistory'].length).toBe(2);
+
+    const upEvent = new KeyboardEvent('keydown', { key: 'ArrowUp' });
+    component.onKeydown(upEvent);
+    expect(component.inputValue).toBe('second');
+
+    component.onKeydown(upEvent);
+    expect(component.inputValue).toBe('first');
+
+    const downEvent = new KeyboardEvent('keydown', { key: 'ArrowDown' });
+    component.onKeydown(downEvent);
+    expect(component.inputValue).toBe('second');
   });
 });
