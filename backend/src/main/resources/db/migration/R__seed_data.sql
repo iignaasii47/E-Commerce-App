@@ -1,5 +1,3 @@
-TRUNCATE TABLE products RESTART IDENTITY CASCADE;
-
 INSERT INTO products (name, description, price, category, image_url, stock, rating) VALUES
 ('Mechanical Keyboard MK-750', 'Premium mechanical keyboard with Cherry MX Blue switches, RGB backlighting, and aircraft-grade aluminum frame.', 149.99, 'peripherals', 'https://placehold.co/400x400/0a0e14/00ff41?text=MK-750', 23, 4.7),
 ('Ultrawide Monitor 34"', '34-inch curved ultrawide monitor with 3440x1440 resolution, 144Hz refresh rate, and HDR400 support.', 599.99, 'displays', 'https://placehold.co/400x400/0a0e14/7dd3fc?text=UW34', 8, 4.9),
@@ -13,7 +11,6 @@ INSERT INTO products (name, description, price, category, image_url, stock, rati
 ('Monitor Light Bar', 'LED monitor light bar with adjustable color temperature, touch dimmer, and space-saving asymmetric design.', 49.99, 'accessories', 'https://placehold.co/400x400/0a0e14/7dd3fc?text=Light+Bar', 55, 4.5)
 ON CONFLICT DO NOTHING;
 
--- Persistent guest user (password: guest)
 INSERT INTO users (username, email, password, created_at) VALUES
 ('guest', 'guest@webshop.tui', '$2a$10$0jLyyJSrznBCvw2y2AtOUemeMGd2Sd9zR/tMLKi1YpaiqYRdzm1vq', NOW())
 ON CONFLICT (username) DO NOTHING;
