@@ -6,10 +6,10 @@ import java.util.List;
 
 public interface CartUseCase {
 
-    List<CartItem> getCart(Long userId);
+    List<CartItem> getCart();
 
-    CartItem addToCart(Long userId, Long productId, int quantity);
+    CartItem addToCart(Long productId, int quantity);
 
-    void removeFromCart(Long userId, Long cartItemId);
+    void removeFromCart(Long cartItemId);
 
 }

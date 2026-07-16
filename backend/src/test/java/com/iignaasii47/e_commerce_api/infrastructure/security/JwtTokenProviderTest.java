@@ -1,6 +1,7 @@
 package com.iignaasii47.e_commerce_api.infrastructure.security;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 
@@ -8,8 +9,11 @@ import org.junit.jupiter.api.Test;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class JwtTokenProviderTest {
 
@@ -81,5 +85,53 @@ class JwtTokenProviderTest {
 
         assertThat(claims.getExpiration())
                 .isAfter(claims.getIssuedAt());
+    }
+
+    @Test
+    void shouldValidateAndReturnUserIdForValidToken() {
+        String token = tokenProvider.generateToken(42L, "alice");
+
+        Long userId = tokenProvider.validateAndGetUserId(token);
+
+        assertThat(userId).isEqualTo(42L);
+    }
+
+    @Test
+    void shouldThrowWhenTokenIsInvalid() {
+        assertThatThrownBy(() -> tokenProvider.validateAndGetUserId("invalid.token.here"))
+                .isInstanceOf(JwtException.class);
+    }
+
+    @Test
+    void shouldThrowWhenTokenSignatureIsInvalid() {
+        String token = tokenProvider.generateToken(1L, "john");
+        String tampered = token.substring(0, token.length() - 5) + "AAAAA";
+
+        assertThatThrownBy(() -> tokenProvider.validateAndGetUserId(tampered))
+                .isInstanceOf(JwtException.class);
+    }
+
+    @Test
+    void shouldThrowWhenTokenIsExpired() {
+        JwtTokenProvider shortLivedProvider = new JwtTokenProvider(SECRET, 1L);
+        String token = shortLivedProvider.generateToken(1L, "john");
+
+        try {
+            Thread.sleep(5);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        assertThatThrownBy(() -> shortLivedProvider.validateAndGetUserId(token))
+                .isInstanceOf(JwtException.class);
+    }
+
+    @Test
+    void shouldGenerateTokenWithImmediateExpirationCheck() {
+        String token = tokenProvider.generateToken(1L, "john");
+
+        Long userId = tokenProvider.validateAndGetUserId(token);
+
+        assertThat(userId).isNotNull();
     }
 }

@@ -94,7 +94,7 @@ class ChatToolExecutorImplTest {
     @Test
     void shouldExecuteAddToCart() {
         CartItem item = new CartItem(1L, 10L, 5L, "Keyboard", new BigDecimal("149.99"), 3);
-        when(cartUseCase.addToCart(10L, 5L, 3)).thenReturn(item);
+        when(cartUseCase.addToCart(5L, 3)).thenReturn(item);
 
         ChatToolResult result = executor.execute(
                 new ChatToolCall("call_1", "add_to_cart",
@@ -106,7 +106,7 @@ class ChatToolExecutorImplTest {
     @Test
     void shouldAddToCartWithDefaultQuantity() {
         CartItem item = new CartItem(1L, 10L, 5L, "Mouse", new BigDecimal("29.99"), 1);
-        when(cartUseCase.addToCart(10L, 5L, 1)).thenReturn(item);
+        when(cartUseCase.addToCart(5L, 1)).thenReturn(item);
 
         ChatToolResult result = executor.execute(
                 new ChatToolCall("call_1", "add_to_cart",
@@ -127,7 +127,7 @@ class ChatToolExecutorImplTest {
     @Test
     void shouldExecuteViewCart() {
         CartItem item = new CartItem(1L, 10L, 5L, "Keyboard", new BigDecimal("149.99"), 2);
-        when(cartUseCase.getCart(10L)).thenReturn(List.of(item));
+        when(cartUseCase.getCart()).thenReturn(List.of(item));
 
         ChatToolResult result = executor.execute(
                 new ChatToolCall("call_1", "view_cart", Map.of()), 10L);
@@ -137,7 +137,7 @@ class ChatToolExecutorImplTest {
 
     @Test
     void shouldExecuteViewCartEmpty() {
-        when(cartUseCase.getCart(10L)).thenReturn(List.of());
+        when(cartUseCase.getCart()).thenReturn(List.of());
 
         ChatToolResult result = executor.execute(
                 new ChatToolCall("call_1", "view_cart", Map.of()), 10L);

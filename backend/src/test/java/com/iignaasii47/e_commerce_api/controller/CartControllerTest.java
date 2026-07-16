@@ -2,10 +2,12 @@ package com.iignaasii47.e_commerce_api.controller;
 
 import com.iignaasii47.e_commerce_api.application.port.in.CartUseCase;
 import com.iignaasii47.e_commerce_api.domain.model.CartItem;
+import com.iignaasii47.e_commerce_api.domain.port.out.TokenService;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -14,6 +16,7 @@ import java.util.List;
 
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -30,16 +33,16 @@ class CartControllerTest {
     private CartUseCase cartUseCase;
 
     @MockitoBean
-    private UserIdExtractor userIdExtractor;
+    private TokenService tokenService;
 
-    private static final String AUTH_HEADER = "Bearer valid-token";
+    private static final UsernamePasswordAuthenticationToken AUTH =
+            new UsernamePasswordAuthenticationToken(1L, null, List.of());
 
     @Test
     void shouldReturnEmptyCart() throws Exception {
-        when(userIdExtractor.extract(AUTH_HEADER)).thenReturn(1L);
-        when(cartUseCase.getCart(1L)).thenReturn(List.of());
+        when(cartUseCase.getCart()).thenReturn(List.of());
 
-        mockMvc.perform(get("/api/cart").header("Authorization", AUTH_HEADER))
+        mockMvc.perform(get("/api/cart").with(authentication(AUTH)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isEmpty());
@@ -48,10 +51,9 @@ class CartControllerTest {
     @Test
     void shouldReturnCartWithItems() throws Exception {
         CartItem item = new CartItem(1L, 1L, 5L, "Keyboard", new BigDecimal("149.99"), 2);
-        when(userIdExtractor.extract(AUTH_HEADER)).thenReturn(1L);
-        when(cartUseCase.getCart(1L)).thenReturn(List.of(item));
+        when(cartUseCase.getCart()).thenReturn(List.of(item));
 
-        mockMvc.perform(get("/api/cart").header("Authorization", AUTH_HEADER))
+        mockMvc.perform(get("/api/cart").with(authentication(AUTH)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(1))
                 .andExpect(jsonPath("$[0].productId").value(5))
@@ -64,11 +66,10 @@ class CartControllerTest {
     @Test
     void shouldAddItemToCart() throws Exception {
         CartItem item = new CartItem(1L, 1L, 5L, "Keyboard", new BigDecimal("149.99"), 1);
-        when(userIdExtractor.extract(AUTH_HEADER)).thenReturn(1L);
-        when(cartUseCase.addToCart(1L, 5L, 2)).thenReturn(item);
+        when(cartUseCase.addToCart(5L, 2)).thenReturn(item);
 
         mockMvc.perform(post("/api/cart")
-                        .header("Authorization", AUTH_HEADER)
+                        .with(authentication(AUTH))
                         .param("productId", "5")
                         .param("quantity", "2"))
                 .andExpect(status().isOk())
@@ -80,11 +81,10 @@ class CartControllerTest {
     @Test
     void shouldAddItemWithDefaultQuantity() throws Exception {
         CartItem item = new CartItem(1L, 1L, 5L, "Mouse", new BigDecimal("29.99"), 1);
-        when(userIdExtractor.extract(AUTH_HEADER)).thenReturn(1L);
-        when(cartUseCase.addToCart(1L, 5L, 1)).thenReturn(item);
+        when(cartUseCase.addToCart(5L, 1)).thenReturn(item);
 
         mockMvc.perform(post("/api/cart")
-                        .header("Authorization", AUTH_HEADER)
+                        .with(authentication(AUTH))
                         .param("productId", "5"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.productName").value("Mouse"));
@@ -92,11 +92,10 @@ class CartControllerTest {
 
     @Test
     void shouldRemoveItemFromCart() throws Exception {
-        when(userIdExtractor.extract(AUTH_HEADER)).thenReturn(1L);
-        doNothing().when(cartUseCase).removeFromCart(1L, 7L);
+        doNothing().when(cartUseCase).removeFromCart(7L);
 
         mockMvc.perform(delete("/api/cart/7")
-                        .header("Authorization", AUTH_HEADER))
+                        .with(authentication(AUTH)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("removed"));
     }

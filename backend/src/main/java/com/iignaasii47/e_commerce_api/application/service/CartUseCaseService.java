@@ -6,6 +6,7 @@ import com.iignaasii47.e_commerce_api.domain.exception.AiServiceException;
 import com.iignaasii47.e_commerce_api.domain.model.CartItem;
 import com.iignaasii47.e_commerce_api.domain.model.Product;
 import com.iignaasii47.e_commerce_api.domain.port.out.CartRepository;
+import com.iignaasii47.e_commerce_api.domain.port.out.SecurityContextProvider;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,21 +19,26 @@ public class CartUseCaseService implements CartUseCase {
 
     private final CartRepository cartRepository;
     private final ProductUseCase productUseCase;
+    private final SecurityContextProvider securityContextProvider;
 
-    public CartUseCaseService(CartRepository cartRepository, ProductUseCase productUseCase) {
+    public CartUseCaseService(CartRepository cartRepository, ProductUseCase productUseCase,
+                               SecurityContextProvider securityContextProvider) {
         this.cartRepository = cartRepository;
         this.productUseCase = productUseCase;
+        this.securityContextProvider = securityContextProvider;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<CartItem> getCart(Long userId) {
+    public List<CartItem> getCart() {
+        Long userId = securityContextProvider.getCurrentUserId();
         return cartRepository.findByUserId(userId);
     }
 
     @Override
     @Transactional
-    public CartItem addToCart(Long userId, Long productId, int quantity) {
+    public CartItem addToCart(Long productId, int quantity) {
+        Long userId = securityContextProvider.getCurrentUserId();
         Optional<Product> productOpt = productUseCase.getProductById(productId);
         if (productOpt.isEmpty()) {
             throw new AiServiceException("Product with ID " + productId + " not found");
@@ -51,7 +57,7 @@ public class CartUseCaseService implements CartUseCase {
 
     @Override
     @Transactional
-    public void removeFromCart(Long userId, Long cartItemId) {
+    public void removeFromCart(Long cartItemId) {
         cartRepository.removeItem(cartItemId);
     }
 

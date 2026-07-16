@@ -10,7 +10,6 @@ import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,22 +20,18 @@ import java.util.List;
 public class ChatController {
 
     private final ChatUseCase chatUseCase;
-    private final UserIdExtractor userIdExtractor;
 
-    public ChatController(ChatUseCase chatUseCase, UserIdExtractor userIdExtractor) {
+    public ChatController(ChatUseCase chatUseCase) {
         this.chatUseCase = chatUseCase;
-        this.userIdExtractor = userIdExtractor;
     }
 
     @PostMapping
-    public ChatResponse chat(@Valid @RequestBody ChatRequest request,
-                              @RequestHeader("Authorization") String authHeader) {
-        Long userId = userIdExtractor.extract(authHeader);
+    public ChatResponse chat(@Valid @RequestBody ChatRequest request) {
         List<ChatMessage> history = request.getHistory().stream()
                 .map(dto -> new ChatMessage(mapRole(dto.role()), dto.content()))
                 .toList();
 
-        ChatResult result = chatUseCase.chat(request.getMessage(), history, userId);
+        ChatResult result = chatUseCase.chat(request.getMessage(), history);
         return ChatResponse.from(result);
     }
 

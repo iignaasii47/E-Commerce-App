@@ -9,6 +9,7 @@ import com.iignaasii47.e_commerce_api.domain.model.ChatToolResult;
 import com.iignaasii47.e_commerce_api.domain.port.out.AiClient;
 import com.iignaasii47.e_commerce_api.domain.port.out.ChatToolExecutor;
 import com.iignaasii47.e_commerce_api.domain.port.out.CvDataProvider;
+import com.iignaasii47.e_commerce_api.domain.port.out.SecurityContextProvider;
 
 import org.springframework.stereotype.Service;
 
@@ -66,16 +67,20 @@ public class ChatUseCaseService implements ChatUseCase {
     private final AiClient aiClient;
     private final CvDataProvider cvDataProvider;
     private final ChatToolExecutor chatToolExecutor;
+    private final SecurityContextProvider securityContextProvider;
 
     public ChatUseCaseService(AiClient aiClient, CvDataProvider cvDataProvider,
-                               ChatToolExecutor chatToolExecutor) {
+                               ChatToolExecutor chatToolExecutor,
+                               SecurityContextProvider securityContextProvider) {
         this.aiClient = aiClient;
         this.cvDataProvider = cvDataProvider;
         this.chatToolExecutor = chatToolExecutor;
+        this.securityContextProvider = securityContextProvider;
     }
 
     @Override
-    public ChatResult chat(String userMessage, List<ChatMessage> history, Long userId) {
+    public ChatResult chat(String userMessage, List<ChatMessage> history) {
+        Long userId = securityContextProvider.getCurrentUserId();
         String systemPrompt = APP_DESCRIPTION + CV_INSTRUCTIONS + cvDataProvider.getCvContent();
 
         List<ChatMessage> messages = new ArrayList<>(history);

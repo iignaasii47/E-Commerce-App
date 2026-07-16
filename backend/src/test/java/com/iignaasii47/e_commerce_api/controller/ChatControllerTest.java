@@ -2,11 +2,13 @@ package com.iignaasii47.e_commerce_api.controller;
 
 import com.iignaasii47.e_commerce_api.application.port.in.ChatUseCase;
 import com.iignaasii47.e_commerce_api.domain.model.ChatResult;
+import com.iignaasii47.e_commerce_api.domain.port.out.TokenService;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -14,8 +16,8 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -30,12 +32,14 @@ class ChatControllerTest {
     private ChatUseCase chatUseCase;
 
     @MockitoBean
-    private UserIdExtractor userIdExtractor;
+    private TokenService tokenService;
+
+    private static final UsernamePasswordAuthenticationToken AUTH =
+            new UsernamePasswordAuthenticationToken(1L, null, List.of());
 
     @Test
     void shouldReturnReplyWhenValidRequest() throws Exception {
-        when(userIdExtractor.extract("Bearer token")).thenReturn(1L);
-        when(chatUseCase.chat(anyString(), anyList(), eq(1L)))
+        when(chatUseCase.chat(anyString(), anyList()))
                 .thenReturn(new ChatResult("AI response text", List.of()));
 
         String requestBody = """
@@ -46,7 +50,7 @@ class ChatControllerTest {
                 """;
 
         mockMvc.perform(post("/api/chat")
-                        .header("Authorization", "Bearer token")
+                        .with(authentication(AUTH))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isOk())
@@ -56,8 +60,7 @@ class ChatControllerTest {
 
     @Test
     void shouldReturnToolsUsed() throws Exception {
-        when(userIdExtractor.extract("Bearer token")).thenReturn(1L);
-        when(chatUseCase.chat(anyString(), anyList(), eq(1L)))
+        when(chatUseCase.chat(anyString(), anyList()))
                 .thenReturn(new ChatResult("Done", List.of("search_products", "add_to_cart")));
 
         String requestBody = """
@@ -68,7 +71,7 @@ class ChatControllerTest {
                 """;
 
         mockMvc.perform(post("/api/chat")
-                        .header("Authorization", "Bearer token")
+                        .with(authentication(AUTH))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isOk())
@@ -87,7 +90,7 @@ class ChatControllerTest {
                 """;
 
         mockMvc.perform(post("/api/chat")
-                        .header("Authorization", "Bearer token")
+                        .with(authentication(AUTH))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isBadRequest());
@@ -102,7 +105,7 @@ class ChatControllerTest {
                 """;
 
         mockMvc.perform(post("/api/chat")
-                        .header("Authorization", "Bearer token")
+                        .with(authentication(AUTH))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isBadRequest());
@@ -110,8 +113,7 @@ class ChatControllerTest {
 
     @Test
     void shouldReturn200WithEmptyHistoryWhenNotProvided() throws Exception {
-        when(userIdExtractor.extract("Bearer token")).thenReturn(1L);
-        when(chatUseCase.chat(anyString(), anyList(), eq(1L)))
+        when(chatUseCase.chat(anyString(), anyList()))
                 .thenReturn(ChatResult.of("response"));
 
         String requestBody = """
@@ -121,12 +123,11 @@ class ChatControllerTest {
                 """;
 
         mockMvc.perform(post("/api/chat")
-                        .header("Authorization", "Bearer token")
+                        .with(authentication(AUTH))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.reply").value("response"))
                 .andExpect(jsonPath("$.toolsUsed").isEmpty());
     }
-
 }

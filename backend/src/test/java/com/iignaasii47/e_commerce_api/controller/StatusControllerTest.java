@@ -1,5 +1,7 @@
 package com.iignaasii47.e_commerce_api.controller;
 
+import com.iignaasii47.e_commerce_api.domain.port.out.TokenService;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -22,6 +24,9 @@ class StatusControllerTest {
 
     @MockitoBean
     private DataSource dataSource;
+
+    @MockitoBean
+    private TokenService tokenService;
 
     @Test
     void shouldReturnUpStatusWhenDatabaseIsUp() throws Exception {

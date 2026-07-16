@@ -6,6 +6,7 @@ import com.iignaasii47.e_commerce_api.domain.model.ChatResult;
 import com.iignaasii47.e_commerce_api.domain.port.out.AiClient;
 import com.iignaasii47.e_commerce_api.domain.port.out.ChatToolExecutor;
 import com.iignaasii47.e_commerce_api.domain.port.out.CvDataProvider;
+import com.iignaasii47.e_commerce_api.domain.port.out.SecurityContextProvider;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,6 +26,8 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class ChatUseCaseServiceTest {
 
+    private static final Long USER_ID = 1L;
+
     @Mock
     private AiClient aiClient;
 
@@ -34,16 +37,20 @@ class ChatUseCaseServiceTest {
     @Mock
     private ChatToolExecutor chatToolExecutor;
 
+    @Mock
+    private SecurityContextProvider securityContextProvider;
+
     @InjectMocks
     private ChatUseCaseService chatUseCaseService;
 
     @Test
     void shouldSendMessageWithSystemPromptAndCvData() {
+        when(securityContextProvider.getCurrentUserId()).thenReturn(USER_ID);
         when(cvDataProvider.getCvContent()).thenReturn("CV content");
         when(aiClient.sendMessage(anyList(), anyString(), anyList()))
                 .thenReturn(ChatAiResponse.text("AI response"));
 
-        ChatResult result = chatUseCaseService.chat("hello", List.of(), 1L);
+        ChatResult result = chatUseCaseService.chat("hello", List.of());
 
         assertThat(result.getReply()).isEqualTo("AI response");
         assertThat(result.getToolsUsed()).isEmpty();
@@ -55,11 +62,12 @@ class ChatUseCaseServiceTest {
     @Test
     void shouldIncludeHistoryInFullHistory() {
         ChatMessage previous = ChatMessage.assistant("previous reply");
+        when(securityContextProvider.getCurrentUserId()).thenReturn(USER_ID);
         when(cvDataProvider.getCvContent()).thenReturn("CV content");
         when(aiClient.sendMessage(anyList(), anyString(), anyList()))
                 .thenReturn(ChatAiResponse.text("response"));
 
-        chatUseCaseService.chat("new message", List.of(previous), 1L);
+        chatUseCaseService.chat("new message", List.of(previous));
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<List<ChatMessage>> historyCaptor = ArgumentCaptor.forClass(List.class);
@@ -73,11 +81,12 @@ class ChatUseCaseServiceTest {
 
     @Test
     void shouldReturnEmptyToolsUsedWhenNoTools() {
+        when(securityContextProvider.getCurrentUserId()).thenReturn(USER_ID);
         when(cvDataProvider.getCvContent()).thenReturn("CV content");
         when(aiClient.sendMessage(anyList(), anyString(), anyList()))
                 .thenReturn(ChatAiResponse.text("response"));
 
-        ChatResult result = chatUseCaseService.chat("hello", List.of(), 1L);
+        ChatResult result = chatUseCaseService.chat("hello", List.of());
 
         assertThat(result.getToolsUsed()).isEmpty();
     }
@@ -86,11 +95,12 @@ class ChatUseCaseServiceTest {
     void shouldPreserveOriginalHistoryImmutability() {
         ChatMessage previous = ChatMessage.assistant("previous");
         List<ChatMessage> originalHistory = List.of(previous);
+        when(securityContextProvider.getCurrentUserId()).thenReturn(USER_ID);
         when(cvDataProvider.getCvContent()).thenReturn("CV content");
         when(aiClient.sendMessage(anyList(), anyString(), anyList()))
                 .thenReturn(ChatAiResponse.text("response"));
 
-        chatUseCaseService.chat("message", originalHistory, 1L);
+        chatUseCaseService.chat("message", originalHistory);
 
         assertThat(originalHistory).hasSize(1);
     }

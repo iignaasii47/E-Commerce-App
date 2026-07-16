@@ -4,4 +4,6 @@ public interface TokenService {
 
     String generateToken(Long userId, String username);
 
+    Long validateAndGetUserId(String token);
+
 }

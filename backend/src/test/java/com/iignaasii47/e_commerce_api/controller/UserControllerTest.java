@@ -5,6 +5,7 @@ import com.iignaasii47.e_commerce_api.domain.exception.DuplicateUserException;
 import com.iignaasii47.e_commerce_api.domain.exception.InvalidCredentialsException;
 import com.iignaasii47.e_commerce_api.domain.model.Authentication;
 import com.iignaasii47.e_commerce_api.domain.model.User;
+import com.iignaasii47.e_commerce_api.domain.port.out.TokenService;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -34,6 +35,9 @@ class UserControllerTest {
 
     @MockitoBean
     private UserUseCase userUseCase;
+
+    @MockitoBean
+    private TokenService tokenService;
 
     @Test
     void shouldRegisterUserAndReturn201() throws Exception {

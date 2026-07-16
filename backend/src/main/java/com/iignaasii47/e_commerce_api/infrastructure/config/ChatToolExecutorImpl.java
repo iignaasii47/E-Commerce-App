@@ -73,19 +73,19 @@ public class ChatToolExecutorImpl implements ChatToolExecutor {
     private String executeAddToCart(Map<String, Object> args, Long userId) {
         Long productId = toLong(args.get("product_id"));
         int quantity = args.containsKey("quantity") ? toInt(args.get("quantity")) : 1;
-        CartItem item = cartUseCase.addToCart(userId, productId, quantity);
+        CartItem item = cartUseCase.addToCart(productId, quantity);
         return "Added " + item.getProductName() + " (x" + item.getQuantity() + ") to cart. "
                 + "Cart item ID: " + item.getId();
     }
 
     private String executeRemoveFromCart(Map<String, Object> args, Long userId) {
         Long cartItemId = toLong(args.get("cart_item_id"));
-        cartUseCase.removeFromCart(userId, cartItemId);
+        cartUseCase.removeFromCart(cartItemId);
         return "Removed cart item " + cartItemId + " from your cart.";
     }
 
     private String executeViewCart(Long userId) {
-        List<CartItem> items = cartUseCase.getCart(userId);
+        List<CartItem> items = cartUseCase.getCart();
         if (items.isEmpty()) {
             return "Your cart is empty.";
         }

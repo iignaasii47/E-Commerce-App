@@ -2,6 +2,7 @@ package com.iignaasii47.e_commerce_api.infrastructure.security;
 
 import com.iignaasii47.e_commerce_api.domain.port.out.TokenService;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 
@@ -37,6 +38,17 @@ public class JwtTokenProvider implements TokenService {
                 .expiration(Date.from(expiry))
                 .signWith(secretKey)
                 .compact();
+    }
+
+    @Override
+    public Long validateAndGetUserId(String token) {
+        Claims claims = Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+
+        return claims.get("userId", Long.class);
     }
 
 }

@@ -29,12 +29,12 @@ This repository is stronger than a basic CRUD portfolio app because it demonstra
 
 | Rank | Improvement | Recruiter Impact | Difficulty | Est. Time |
 |---:|---|---|---|---|
-| 1 | Rotate leaked Sonar token, remove tracked `.env`, and add secret-scanning guidance | Very High | Medium | 1-3h plus history cleanup |
-| 2 | Add GitHub Actions CI for backend tests, frontend tests, build, and coverage upload | Very High | Medium | 3-6h |
+| 1 | (DONE) Rotate leaked Sonar token, remove tracked `.env`, and add secret-scanning guidance | Very High | Medium | 1-3h plus history cleanup |
+| 2 | (DONE) Add GitHub Actions CI for backend tests, frontend tests, build, and coverage upload | Very High | Medium | 3-6h |
 | 3 | Add Dockerfile and `docker-compose.yml` for API, PostgreSQL, and frontend | Very High | Medium | 4-8h |
-| 4 | Replace `ddl-auto=update` and `data.sql` truncation with Flyway migrations and seed scripts | Very High | Medium | 4-8h |
+| 4 | (DONE) Replace `ddl-auto=update` and `data.sql` truncation with Flyway migrations and seed scripts | Very High | Medium | 4-8h |
 | 5 | Move DB credentials and JWT secret to environment variables with prod/dev profiles | Very High | Low | 1-3h |
-| 6 | Implement Spring Security `SecurityFilterChain` and JWT auth filter | Very High | Medium | 5-10h |
+| 6 | (DONE) Implement Spring Security `SecurityFilterChain` and JWT auth filter | Very High | Medium | 5-10h |
 | 7 | Add OpenAPI/Swagger docs with examples and auth scheme | Very High | Low-Medium | 2-5h |
 | 8 | Rewrite root README with setup, architecture, API, screenshots, test commands, and demo flow | Very High | Low | 2-4h |
 | 9 | Fix `arch.md` so it describes the e-commerce domain, not Trello/board examples | High | Low | 1-2h |

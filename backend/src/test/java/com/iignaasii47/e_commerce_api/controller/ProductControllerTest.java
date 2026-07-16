@@ -4,6 +4,7 @@ import com.iignaasii47.e_commerce_api.application.port.in.ProductImageUseCase;
 import com.iignaasii47.e_commerce_api.application.port.in.ProductUseCase;
 import com.iignaasii47.e_commerce_api.domain.model.ImageData;
 import com.iignaasii47.e_commerce_api.domain.model.Product;
+import com.iignaasii47.e_commerce_api.domain.port.out.TokenService;
 import com.iignaasii47.e_commerce_api.util.TestFixtures;
 
 import org.junit.jupiter.api.Test;
@@ -32,6 +33,9 @@ class ProductControllerTest {
 
     @MockitoBean
     private ProductImageUseCase productImageUseCase;
+
+    @MockitoBean
+    private TokenService tokenService;
 
     @Test
     void shouldReturnAllProducts() throws Exception {
