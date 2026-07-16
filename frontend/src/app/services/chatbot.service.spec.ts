@@ -58,7 +58,7 @@ describe('ChatbotService', () => {
   it('getGreeting should return a greeting containing username', () => {
     vi.useFakeTimers();
     const auth = TestBed.inject(AuthService);
-    (auth as any).currentUser.set({ id: 1, username: 'testuser', email: 't@t.com', token: 't' });
+    (auth as any).currentUser.set({ id: 1, username: 'testuser', email: 't@t.com' });
 
     let greeting: string | undefined;
     service.getGreeting().subscribe((g) => {

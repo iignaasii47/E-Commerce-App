@@ -46,7 +46,7 @@ describe('TerminalTitlebarComponent', () => {
   it('should show logout link when authenticated', async () => {
     const { fixture } = await setup();
     const auth = TestBed.inject(AuthService);
-    (auth as any).currentUser.set({ id: 1, username: 'test', email: 'test@user.com', token: 't' });
+    (auth as any).currentUser.set({ id: 1, username: 'test', email: 'test@user.com' });
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('test');
     const action = fixture.nativeElement.querySelector('.titlebar__action') as HTMLElement;
@@ -61,7 +61,7 @@ describe('TerminalTitlebarComponent', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('login');
 
-    (auth as any).currentUser.set({ id: 1, username: 'test', email: 'test@user.com', token: 't' });
+    (auth as any).currentUser.set({ id: 1, username: 'test', email: 'test@user.com' });
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).not.toContain('login');
   });
@@ -69,7 +69,7 @@ describe('TerminalTitlebarComponent', () => {
   it('should logout and navigate to home when logout is clicked', async () => {
     const { fixture, component } = await setup();
     const auth = TestBed.inject(AuthService);
-    (auth as any).currentUser.set({ id: 1, username: 'test', email: 'test@user.com', token: 't' });
+    (auth as any).currentUser.set({ id: 1, username: 'test', email: 'test@user.com' });
     fixture.detectChanges();
 
     const routerSpy = vi.spyOn((component as any).router, 'navigate');

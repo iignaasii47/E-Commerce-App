@@ -54,8 +54,8 @@ describe('LoginComponent', () => {
     const notifications = TestBed.inject(NotificationService);
     const routerSpy = vi.spyOn((component as any).router, 'navigate');
     const loginSpy = vi.spyOn(auth, 'login').mockImplementation((email: string, _password: string) => {
-      (auth as any).currentUser.set({ id: 1, username: email.split('@')[0], email, token: 't' });
-      return of({ id: 1, username: email.split('@')[0], email, createdAt: '', token: 't' });
+      (auth as any).currentUser.set({ id: 1, username: email.split('@')[0], email });
+      return of({ id: 1, username: email.split('@')[0], email, createdAt: '', accessToken: 'at', refreshToken: 'rt' });
     });
     const successSpy = vi.spyOn(notifications, 'success');
 

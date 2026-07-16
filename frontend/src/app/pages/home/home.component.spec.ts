@@ -50,7 +50,7 @@ describe('HomeComponent', () => {
   it('should show username when logged in', async () => {
     const { fixture } = await setup();
     const auth = TestBed.inject(AuthService);
-    (auth as any).currentUser.set({ id: 1, username: 'testuser', email: 'testuser@test.com', token: 't' });
+    (auth as any).currentUser.set({ id: 1, username: 'testuser', email: 'testuser@test.com' });
     fixture.detectChanges();
     const grids = fixture.nativeElement.querySelectorAll('.info-grid');
     const lastGrid = grids[grids.length - 1] as HTMLElement;
