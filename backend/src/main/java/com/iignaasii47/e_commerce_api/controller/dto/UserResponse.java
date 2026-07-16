@@ -2,13 +2,20 @@ package com.iignaasii47.e_commerce_api.controller.dto;
 
 import com.iignaasii47.e_commerce_api.domain.model.User;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.time.LocalDateTime;
 
+@Schema(description = "Public user profile information")
 public class UserResponse {
 
+    @Schema(description = "Unique user identifier", example = "1")
     private Long id;
+    @Schema(description = "Unique username", example = "john_doe")
     private String username;
+    @Schema(description = "User email address", example = "john@example.com")
     private String email;
+    @Schema(description = "Account creation timestamp (UTC)", example = "2026-01-01T12:00:00")
     private LocalDateTime createdAt;
 
     public UserResponse() {
