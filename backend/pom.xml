@@ -138,6 +138,17 @@
 	<build>
 		<plugins>
 			<plugin>
+				<groupId>org.flywaydb</groupId>
+				<artifactId>flyway-maven-plugin</artifactId>
+				<configuration>
+					<url>jdbc:postgresql://localhost:5432/ecommerce-db</url>
+					<user>postgres</user>
+					<password>postgres</password>
+					<baselineOnMigrate>true</baselineOnMigrate>
+					<baselineVersion>1</baselineVersion>
+				</configuration>
+			</plugin>
+			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>

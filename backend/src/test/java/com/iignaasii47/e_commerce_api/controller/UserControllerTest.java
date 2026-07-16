@@ -6,6 +6,7 @@ import com.iignaasii47.e_commerce_api.domain.exception.InvalidCredentialsExcepti
 import com.iignaasii47.e_commerce_api.domain.model.Authentication;
 import com.iignaasii47.e_commerce_api.domain.model.User;
 import com.iignaasii47.e_commerce_api.domain.port.out.TokenService;
+import com.iignaasii47.e_commerce_api.domain.port.out.RefreshTokenRepository;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -38,6 +39,9 @@ class UserControllerTest {
 
     @MockitoBean
     private TokenService tokenService;
+
+    @MockitoBean
+    private RefreshTokenRepository refreshTokenRepository;
 
     @Test
     void shouldRegisterUserAndReturn201() throws Exception {
@@ -103,9 +107,9 @@ class UserControllerTest {
     }
 
     @Test
-    void shouldLoginAndReturn200WithToken() throws Exception {
+    void shouldLoginAndReturn200WithTokens() throws Exception {
         User user = new User(1L, "john", "john@example.com", "encrypted", FIXED_TIME);
-        Authentication auth = new Authentication(user, "jwt-token-value");
+        Authentication auth = new Authentication(user, "access-jwt-value", "refresh-jwt-value");
         when(userUseCase.login("john@example.com", "secret123")).thenReturn(auth);
 
         String requestBody = """
@@ -122,7 +126,8 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.username").value("john"))
                 .andExpect(jsonPath("$.email").value("john@example.com"))
-                .andExpect(jsonPath("$.token").value("jwt-token-value"));
+                .andExpect(jsonPath("$.accessToken").value("access-jwt-value"))
+                .andExpect(jsonPath("$.refreshToken").value("refresh-jwt-value"));
     }
 
     @Test

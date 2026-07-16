@@ -9,4 +9,8 @@ public interface UserUseCase {
 
     Authentication login(String email, String password);
 
+    Authentication refresh(String refreshToken);
+
+    void logout(String refreshToken);
+
 }

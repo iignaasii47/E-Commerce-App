@@ -51,7 +51,7 @@ This repository is stronger than a basic CRUD portfolio app because it demonstra
 | 20 | Add rate limiting for login and chat endpoints | High | Medium | 4-8h |
 | 21 | Add structured request logging with correlation IDs | Medium-High | Medium | 4-8h |
 | 22 | Add Actuator health, readiness, and liveness endpoints | Medium-High | Low | 1-2h |
-| 23 | Add dependency/security scanning in CI, such as OWASP Dependency-Check or Snyk | High | Low-Medium | 2-5h |
+| 23 | (DONE) Add dependency/security scanning in CI, such as OWASP Dependency-Check or Snyk | High | Low-Medium | 2-5h |
 | 24 | Add deployment example for Render, Fly.io, Railway, or AWS with env var docs | High | Medium | 4-8h |
 | 25 | Add API versioning strategy, such as `/api/v1/...` | Medium | Low | 1-2h |
 | 26 | Add refresh token or short-lived token strategy | Medium-High | Medium | 1 day |

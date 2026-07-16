@@ -19,34 +19,33 @@ class JwtTokenProviderTest {
 
     private static final String SECRET = "myTestSecretKeyThatIsLongEnoughForHS256Algorithm123";
 
-    private final JwtTokenProvider tokenProvider = new JwtTokenProvider(SECRET, 3600000L);
+    private final JwtTokenProvider tokenProvider = new JwtTokenProvider(SECRET, 900000L, 604800000L);
 
     @Test
-    void shouldGenerateToken() {
-        String token = tokenProvider.generateToken(1L, "john");
+    void shouldGenerateAccessToken() {
+        String token = tokenProvider.generateAccessToken(1L, "john");
+
+        assertThat(token).isNotNull().isNotEmpty();
+    }
+
+    @Test
+    void shouldGenerateRefreshToken() {
+        String token = tokenProvider.generateRefreshToken(1L, "john");
 
         assertThat(token).isNotNull().isNotEmpty();
     }
 
     @Test
     void shouldGenerateUniqueTokensForDifferentUsers() {
-        String token1 = tokenProvider.generateToken(1L, "john");
-        String token2 = tokenProvider.generateToken(2L, "jane");
+        String token1 = tokenProvider.generateAccessToken(1L, "john");
+        String token2 = tokenProvider.generateAccessToken(2L, "jane");
 
         assertThat(token1).isNotEqualTo(token2);
     }
 
     @Test
-    void shouldGenerateTokenWithExpiration() {
-        String token = tokenProvider.generateToken(1L, "john");
-
-        assertThat(token).isNotNull();
-        assertThat(token.split("\\.")).hasSize(3);
-    }
-
-    @Test
     void shouldGenerateTokenWithCorrectSubject() {
-        String token = tokenProvider.generateToken(42L, "alice");
+        String token = tokenProvider.generateAccessToken(42L, "alice");
 
         SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
         Claims claims = Jwts.parser()
@@ -59,8 +58,36 @@ class JwtTokenProviderTest {
     }
 
     @Test
+    void shouldGenerateAccessTokenWithTypeClaim() {
+        String token = tokenProvider.generateAccessToken(42L, "alice");
+
+        SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
+        Claims claims = Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+
+        assertThat(claims.get("type", String.class)).isEqualTo("access");
+    }
+
+    @Test
+    void shouldGenerateRefreshTokenWithTypeClaim() {
+        String token = tokenProvider.generateRefreshToken(42L, "alice");
+
+        SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
+        Claims claims = Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+
+        assertThat(claims.get("type", String.class)).isEqualTo("refresh");
+    }
+
+    @Test
     void shouldGenerateTokenWithUserIdClaim() {
-        String token = tokenProvider.generateToken(42L, "alice");
+        String token = tokenProvider.generateAccessToken(42L, "alice");
 
         SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
         Claims claims = Jwts.parser()
@@ -74,7 +101,7 @@ class JwtTokenProviderTest {
 
     @Test
     void shouldGenerateTokenWithExpirationInTheFuture() {
-        String token = tokenProvider.generateToken(1L, "john");
+        String token = tokenProvider.generateAccessToken(1L, "john");
 
         SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
         Claims claims = Jwts.parser()
@@ -88,33 +115,60 @@ class JwtTokenProviderTest {
     }
 
     @Test
-    void shouldValidateAndReturnUserIdForValidToken() {
-        String token = tokenProvider.generateToken(42L, "alice");
+    void shouldValidateAccessTokenAndReturnUserId() {
+        String token = tokenProvider.generateAccessToken(42L, "alice");
 
-        Long userId = tokenProvider.validateAndGetUserId(token);
+        Long userId = tokenProvider.validateAccessTokenAndGetUserId(token);
 
         assertThat(userId).isEqualTo(42L);
     }
 
     @Test
+    void shouldValidateRefreshTokenAndReturnUserId() {
+        String token = tokenProvider.generateRefreshToken(42L, "alice");
+
+        Long userId = tokenProvider.validateRefreshTokenAndGetUserId(token);
+
+        assertThat(userId).isEqualTo(42L);
+    }
+
+    @Test
+    void shouldRejectRefreshTokenAsAccessToken() {
+        String token = tokenProvider.generateRefreshToken(42L, "alice");
+
+        assertThatThrownBy(() -> tokenProvider.validateAccessTokenAndGetUserId(token))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Token is not an access token");
+    }
+
+    @Test
+    void shouldRejectAccessTokenAsRefreshToken() {
+        String token = tokenProvider.generateAccessToken(42L, "alice");
+
+        assertThatThrownBy(() -> tokenProvider.validateRefreshTokenAndGetUserId(token))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Token is not a refresh token");
+    }
+
+    @Test
     void shouldThrowWhenTokenIsInvalid() {
-        assertThatThrownBy(() -> tokenProvider.validateAndGetUserId("invalid.token.here"))
+        assertThatThrownBy(() -> tokenProvider.validateAccessTokenAndGetUserId("invalid.token.here"))
                 .isInstanceOf(JwtException.class);
     }
 
     @Test
     void shouldThrowWhenTokenSignatureIsInvalid() {
-        String token = tokenProvider.generateToken(1L, "john");
+        String token = tokenProvider.generateAccessToken(1L, "john");
         String tampered = token.substring(0, token.length() - 5) + "AAAAA";
 
-        assertThatThrownBy(() -> tokenProvider.validateAndGetUserId(tampered))
+        assertThatThrownBy(() -> tokenProvider.validateAccessTokenAndGetUserId(tampered))
                 .isInstanceOf(JwtException.class);
     }
 
     @Test
     void shouldThrowWhenTokenIsExpired() {
-        JwtTokenProvider shortLivedProvider = new JwtTokenProvider(SECRET, 1L);
-        String token = shortLivedProvider.generateToken(1L, "john");
+        JwtTokenProvider shortLivedProvider = new JwtTokenProvider(SECRET, 1L, 1L);
+        String token = shortLivedProvider.generateAccessToken(1L, "john");
 
         try {
             Thread.sleep(5);
@@ -122,16 +176,17 @@ class JwtTokenProviderTest {
             Thread.currentThread().interrupt();
         }
 
-        assertThatThrownBy(() -> shortLivedProvider.validateAndGetUserId(token))
+        assertThatThrownBy(() -> shortLivedProvider.validateAccessTokenAndGetUserId(token))
                 .isInstanceOf(JwtException.class);
     }
 
     @Test
     void shouldGenerateTokenWithImmediateExpirationCheck() {
-        String token = tokenProvider.generateToken(1L, "john");
+        String token = tokenProvider.generateAccessToken(1L, "john");
 
-        Long userId = tokenProvider.validateAndGetUserId(token);
+        Long userId = tokenProvider.validateAccessTokenAndGetUserId(token);
 
         assertThat(userId).isNotNull();
     }
+
 }

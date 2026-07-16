@@ -1,17 +1,20 @@
 package com.iignaasii47.e_commerce_api.application.service;
 
 import com.iignaasii47.e_commerce_api.domain.exception.InvalidCredentialsException;
+import com.iignaasii47.e_commerce_api.domain.exception.RefreshTokenException;
 import com.iignaasii47.e_commerce_api.domain.model.Authentication;
+import com.iignaasii47.e_commerce_api.domain.model.RefreshToken;
 import com.iignaasii47.e_commerce_api.domain.model.User;
 import com.iignaasii47.e_commerce_api.domain.port.out.PasswordEncryption;
+import com.iignaasii47.e_commerce_api.domain.port.out.RefreshTokenRepository;
 import com.iignaasii47.e_commerce_api.domain.port.out.TokenService;
 import com.iignaasii47.e_commerce_api.domain.port.out.UserRepository;
 import com.iignaasii47.e_commerce_api.domain.service.UserRegistrationService;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -29,6 +32,7 @@ import static org.mockito.Mockito.when;
 class UserUseCaseServiceTest {
 
     private static final LocalDateTime FIXED_TIME = LocalDateTime.of(2026, Month.JANUARY, 1, 12, 0);
+    private static final long REFRESH_EXPIRATION_MS = 604800000L;
 
     @Mock
     private UserRepository userRepository;
@@ -42,8 +46,16 @@ class UserUseCaseServiceTest {
     @Mock
     private TokenService tokenService;
 
-    @InjectMocks
+    @Mock
+    private RefreshTokenRepository refreshTokenRepository;
+
     private UserUseCaseService userUseCaseService;
+
+    @BeforeEach
+    void setup() {
+        userUseCaseService = new UserUseCaseService(userRepository, passwordEncryption,
+                userRegistrationService, tokenService, refreshTokenRepository, REFRESH_EXPIRATION_MS);
+    }
 
     @Test
     void shouldEncryptPasswordAndSaveUser() {
@@ -83,19 +95,23 @@ class UserUseCaseServiceTest {
     }
 
     @Test
-    void shouldLoginAndReturnToken() {
+    void shouldLoginAndReturnTokens() {
         User user = new User(1L, "john", "john@example.com", "encrypted", FIXED_TIME);
         when(userRepository.findByEmail("john@example.com")).thenReturn(Optional.of(user));
         when(passwordEncryption.matches("secret123", "encrypted")).thenReturn(true);
-        when(tokenService.generateToken(1L, "john@example.com")).thenReturn("jwt-token");
+        when(tokenService.generateAccessToken(1L, "john@example.com")).thenReturn("access-jwt");
+        when(tokenService.generateRefreshToken(1L, "john@example.com")).thenReturn("refresh-jwt");
 
         Authentication result = userUseCaseService.login("john@example.com", "secret123");
 
         assertThat(result.getUser().getId()).isEqualTo(1L);
         assertThat(result.getUser().getUsername()).isEqualTo("john");
-        assertThat(result.getToken()).isEqualTo("jwt-token");
+        assertThat(result.getAccessToken()).isEqualTo("access-jwt");
+        assertThat(result.getRefreshToken()).isEqualTo("refresh-jwt");
 
-        verify(tokenService).generateToken(1L, "john@example.com");
+        verify(tokenService).generateAccessToken(1L, "john@example.com");
+        verify(tokenService).generateRefreshToken(1L, "john@example.com");
+        verify(refreshTokenRepository).save(any(RefreshToken.class));
     }
 
     @Test
@@ -116,6 +132,68 @@ class UserUseCaseServiceTest {
         assertThatThrownBy(() -> userUseCaseService.login("john@example.com", "wrong"))
                 .isInstanceOf(InvalidCredentialsException.class)
                 .hasMessage("Invalid email or password");
+    }
+
+    @Test
+    void shouldRefreshAndReturnNewTokens() {
+        LocalDateTime now = LocalDateTime.now(java.time.ZoneOffset.UTC);
+        User user = new User(1L, "john", "john@example.com", "encrypted", now);
+        RefreshToken storedToken = new RefreshToken(10L, "old-refresh", 1L,
+                now.plusDays(7), false, now);
+
+        when(tokenService.validateRefreshTokenAndGetUserId("old-refresh")).thenReturn(1L);
+        when(refreshTokenRepository.findByToken("old-refresh")).thenReturn(Optional.of(storedToken));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(tokenService.generateAccessToken(1L, "john@example.com")).thenReturn("new-access");
+        when(tokenService.generateRefreshToken(1L, "john@example.com")).thenReturn("new-refresh");
+
+        Authentication result = userUseCaseService.refresh("old-refresh");
+
+        assertThat(result.getAccessToken()).isEqualTo("new-access");
+        assertThat(result.getRefreshToken()).isEqualTo("new-refresh");
+        assertThat(result.getUser().getId()).isEqualTo(1L);
+    }
+
+    @Test
+    void shouldThrowWhenRefreshTokenRevoked() {
+        LocalDateTime now = LocalDateTime.now(java.time.ZoneOffset.UTC);
+        RefreshToken revokedToken = new RefreshToken(10L, "old-refresh", 1L,
+                now.plusDays(7), true, now);
+
+        when(tokenService.validateRefreshTokenAndGetUserId("old-refresh")).thenReturn(1L);
+        when(refreshTokenRepository.findByToken("old-refresh")).thenReturn(Optional.of(revokedToken));
+
+        assertThatThrownBy(() -> userUseCaseService.refresh("old-refresh"))
+                .isInstanceOf(RefreshTokenException.class)
+                .hasMessage("Refresh token has been revoked. All sessions invalidated.");
+
+        verify(refreshTokenRepository).revokeAllForUser(1L);
+    }
+
+    @Test
+    void shouldThrowWhenRefreshTokenExpired() {
+        RefreshToken expiredToken = new RefreshToken(10L, "old-refresh", 1L,
+                FIXED_TIME.minusDays(1), false, FIXED_TIME);
+
+        when(tokenService.validateRefreshTokenAndGetUserId("old-refresh")).thenReturn(1L);
+        when(refreshTokenRepository.findByToken("old-refresh")).thenReturn(Optional.of(expiredToken));
+
+        assertThatThrownBy(() -> userUseCaseService.refresh("old-refresh"))
+                .isInstanceOf(RefreshTokenException.class)
+                .hasMessage("Refresh token has expired");
+    }
+
+    @Test
+    void shouldLogoutAndRevokeToken() {
+        LocalDateTime now = LocalDateTime.now(java.time.ZoneOffset.UTC);
+        RefreshToken storedToken = new RefreshToken(10L, "refresh-value", 1L,
+                now.plusDays(7), false, now);
+
+        when(refreshTokenRepository.findByToken("refresh-value")).thenReturn(Optional.of(storedToken));
+
+        userUseCaseService.logout("refresh-value");
+
+        verify(refreshTokenRepository).save(any(RefreshToken.class));
     }
 
 }

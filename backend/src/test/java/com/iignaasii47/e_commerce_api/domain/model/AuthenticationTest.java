@@ -12,12 +12,13 @@ class AuthenticationTest {
     private static final LocalDateTime FIXED_TIME = LocalDateTime.of(2026, Month.JANUARY, 1, 12, 0);
 
     @Test
-    void shouldStoreUserAndToken() {
+    void shouldStoreUserAndTokens() {
         User user = new User(1L, "john", "john@example.com", "encrypted", FIXED_TIME);
-        Authentication auth = new Authentication(user, "jwt-token");
+        Authentication auth = new Authentication(user, "access-jwt", "refresh-jwt");
 
         assertThat(auth.getUser()).isEqualTo(user);
-        assertThat(auth.getToken()).isEqualTo("jwt-token");
+        assertThat(auth.getAccessToken()).isEqualTo("access-jwt");
+        assertThat(auth.getRefreshToken()).isEqualTo("refresh-jwt");
     }
 
 }

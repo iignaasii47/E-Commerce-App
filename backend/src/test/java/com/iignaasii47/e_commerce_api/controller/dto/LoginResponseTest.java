@@ -13,7 +13,7 @@ class LoginResponseTest {
     @Test
     void shouldMapAuthenticationToResponse() {
         User user = TestFixtures.aJohnUser();
-        Authentication auth = new Authentication(user, "jwt-token");
+        Authentication auth = new Authentication(user, "access-token", "refresh-token");
 
         LoginResponse response = LoginResponse.from(auth);
 
@@ -21,15 +21,18 @@ class LoginResponseTest {
         assertThat(response.getUsername()).isEqualTo("john");
         assertThat(response.getEmail()).isEqualTo("john@example.com");
         assertThat(response.getCreatedAt()).isEqualTo(TestFixtures.FIXED_TIME);
-        assertThat(response.getToken()).isEqualTo("jwt-token");
+        assertThat(response.getAccessToken()).isEqualTo("access-token");
+        assertThat(response.getRefreshToken()).isEqualTo("refresh-token");
     }
 
     @Test
-    void shouldSetAndGetToken() {
+    void shouldSetAndGetTokens() {
         LoginResponse response = new LoginResponse();
-        response.setToken("jwt-token");
+        response.setAccessToken("access-token");
+        response.setRefreshToken("refresh-token");
 
-        assertThat(response.getToken()).isEqualTo("jwt-token");
+        assertThat(response.getAccessToken()).isEqualTo("access-token");
+        assertThat(response.getRefreshToken()).isEqualTo("refresh-token");
     }
 
 }

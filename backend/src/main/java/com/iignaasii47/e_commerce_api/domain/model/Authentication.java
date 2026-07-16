@@ -3,19 +3,25 @@ package com.iignaasii47.e_commerce_api.domain.model;
 public class Authentication {
 
     private final User user;
-    private final String token;
+    private final String accessToken;
+    private final String refreshToken;
 
-    public Authentication(User user, String token) {
+    public Authentication(User user, String accessToken, String refreshToken) {
         this.user = user;
-        this.token = token;
+        this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
     }
 
     public User getUser() {
         return user;
     }
 
-    public String getToken() {
-        return token;
+    public String getAccessToken() {
+        return accessToken;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
     }
 
 }
