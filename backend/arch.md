@@ -52,23 +52,24 @@ Dependency arrow always points **inward**. The domain never knows about infrastr
 **What it is**: The HTTP-facing layer. It receives REST requests and sends back responses.
 
 **What it does**:
-- Parses incoming JSON into DTOs (e.g. `CreateBoardRequest`, `UpdateBoardRequest`)
+- Parses incoming JSON into DTOs (e.g. `CreateUserRequest`, `LoginRequest`, `ChatRequest`)
 - Validates input (`@Valid`, `@NotBlank`, etc.)
 - Calls an **inbound port** (never an implementation directly)
-- Maps returned domain objects into response DTOs (e.g. `BoardResponse`)
+- Maps returned domain objects into response DTOs (e.g. `UserResponse`, `CartItemResponse`, `ProductResponse`)
 
 **What it NEVER does**:
 - Contains business logic or if/else decisions
 - Accesses repositories or JPA directly
 - Knows about database tables or passwords
 
-**Example** (`BoardController.java:40-44`):
+**Example** (`UserController.java:47-50`):
 ```java
 @PostMapping
-public BoardResponse createBoard(@Valid @RequestBody CreateBoardRequest request) {
-    Board board = new Board(null, request.title(), request.description(), null, null, null);
-    Board created = boardUseCase.createBoard(board);   // <— inbound port call
-    return toResponse(created);
+@ResponseStatus(HttpStatus.CREATED)
+public UserResponse register(@Valid @RequestBody CreateUserRequest request) {
+    User user = new User(null, request.username(), request.email(), request.password(), null);
+    User created = userUseCase.register(user);   // <— inbound port call
+    return UserResponse.from(created);
 }
 ```
 
@@ -86,10 +87,11 @@ This layer is split into two sub-packages:
 
 | Interface | Operations |
 |-----------|-----------|
-| `BoardUseCase` | createBoard, getBoard, getAllBoards, updateBoard, deleteBoard |
-| `ListUseCase` | createList, getList, getListsByBoardId, updateList, deleteList |
-| `CardUseCase` | createCard, getCard, getCardsByListId, updateCard, deleteCard |
-| `UserUseCase` | register, login, getUser, getAllUsers, updateUser, deleteUser |
+| `ProductUseCase` | getAllProducts, getProductById, getProductsByCategory, searchProducts, getCategories |
+| `ProductImageUseCase` | getImage |
+| `CartUseCase` | getCart, addToCart, removeFromCart |
+| `UserUseCase` | register, login |
+| `ChatUseCase` | chat |
 
 **Why**: Controllers depend on these interfaces, not concrete classes. You could swap the entire implementation without touching a controller.
 
@@ -106,8 +108,8 @@ This layer is split into two sub-packages:
 - Coordinates multiple domain services or repositories
 
 **Examples of orchestration logic**:
-- `BoardUseCaseService.createBoard()`: gets current userId from security context → sets it as board owner → saves
-- `CardUseCaseService.updateCard()`: loads card → loads list → loads board → verifies board ownership → updates card
+- `CartUseCaseService.addToCart()`: gets current userId from security context → looks up product via ProductUseCase → checks if product already in cart → adds new item or increments quantity
+- `UserUseCaseService.register()`: delegates uniqueness validation to `UserRegistrationService` (domain service) → encrypts password via `PasswordEncryption` → saves via `UserRepository`
 
 **What it NEVER does**:
 - Contains HTTP-related code (request parsing, response mapping)
@@ -126,14 +128,17 @@ This is the **heart of the application**. It must be **framework-agnostic** — 
 
 | Model | Fields |
 |-------|--------|
-| `Board` | id, title, description, ownerId, createdAt, updatedAt |
-| `TrelloList` | id, title, position, boardId, createdAt, updatedAt |
-| `Card` | id, title, description, position, listId, assigneeId, createdAt, updatedAt |
+| `Product` | id, name, description, price, category, imageUrl, stock, rating |
 | `User` | id, username, email, password, createdAt |
+| `CartItem` | id, userId, productId, productName, unitPrice, quantity |
+| `Authentication` | user, token |
+| `ImageData` | data, mimeType |
+| `ChatMessage` | role, content, toolCallId |
+| `ChatResult` | reply, toolsUsed |
 
 **What they contain**:
 - Data fields with getters/setters
-- Business methods (e.g., `board.update(title, description)`)
+- Business methods (e.g., `CartItem.getSubtotal()`, `Product.builder()`)
 - `equals` / `hashCode` based on identity
 
 **What they do NOT contain**:
@@ -158,13 +163,9 @@ This is the **heart of the application**. It must be **framework-agnostic** — 
 
 | Exception | When thrown | HTTP status |
 |-----------|-----------|-------------|
-| `BoardNotFoundException` | Board ID not in DB | 404 |
-| `ListNotFoundException` | List ID not in DB | 404 |
-| `CardNotFoundException` | Card ID not in DB | 404 |
-| `UserNotFoundException` | User ID not in DB | 404 |
-| `DuplicateUserException` | Username/email taken | 409 |
-| `InvalidCredentialsException` | Wrong password | 401 |
-| `UnauthorizedAccessException` | Non-owner accessing resource | 403 |
+| `DuplicateUserException` | Username or email already taken | 409 |
+| `InvalidCredentialsException` | Wrong email or password | 401 |
+| `AiServiceException` | AI service unavailable or all models failed | 502 |
 
 These are thrown by the application/domain layer and caught by `GlobalExceptionHandler`.
 
@@ -174,11 +175,14 @@ These are thrown by the application/domain layer and caught by `GlobalExceptionH
 
 | Interface | Purpose |
 |-----------|---------|
-| `BoardRepository` | Persist and retrieve Board entities |
-| `ListRepository` | Persist and retrieve List entities |
-| `CardRepository` | Persist and retrieve Card entities |
+| `ProductRepository` | Persist and retrieve Product entities |
+| `ProductImageRepository` | Retrieve product image binary data |
+| `CartRepository` | Persist and retrieve CartItem entities |
 | `UserRepository` | Persist and retrieve User entities |
-| `PasswordEncryption` | Hash and verify passwords |
+| `AiClient` | Send messages to the LLM and receive responses |
+| `ChatToolExecutor` | Execute tool calls from the AI assistant (search, cart operations) |
+| `CvDataProvider` | Load CV data for the AI chatbot to answer developer questions |
+| `PasswordEncryption` | Hash and verify passwords (BCrypt) |
 | `TokenService` | Generate and validate JWT tokens |
 | `SecurityContextProvider` | Get the current authenticated user ID |
 
@@ -196,13 +200,13 @@ Sub-layers:
 
 | Sub-package | Role |
 |-------------|------|
-| `entity/` | JPA entities (`BoardEntity`, `CardEntity`, etc.) — annotated with `@Entity`, `@Table`, `@Column` |
-| `repository/` | Spring Data JPA interfaces (`JpaBoardRepository extends JpaRepository`) **and** adapters (`BoardRepositoryImpl implements BoardRepository`) that map between domain and entity |
-| `mapper/` | Converts between domain models and JPA entities (e.g., `BoardMapper.toDomain()` / `toEntity()`) |
+| `entity/` | JPA entities (`ProductEntity`, `UserEntity`, `CartItemEntity`, `ProductImageEntity`) — annotated with `@Entity`, `@Table`, `@Column` |
+| `repository/` | Spring Data JPA interfaces (`JpaProductRepository extends JpaRepository`, `JpaUserRepository`, `JpaCartItemRepository`, `JpaProductImageRepository`) **and** adapters (`ProductRepositoryImpl implements ProductRepository`, `UserRepositoryImpl`, `CartRepositoryImpl`, `ProductImageRepositoryImpl`) that map between domain and entity |
+| `mapper/` | Converts between domain models and JPA entities (e.g. `ProductMapper.toDomain()` / `toEntity()`, `UserMapper`, `CartItemMapper`) |
 
 **Why the split?** Domain models have no JPA annotations. JPA entities have them. Mappers bridge the two so you can swap persistence without touching domain.
 
-**Adapter pattern**: `BoardRepositoryImpl` implements `BoardRepository` (the domain port) by delegating to `JpaBoardRepository` and using `BoardMapper` to convert.
+**Adapter pattern**: `ProductRepositoryImpl` implements `ProductRepository` (the domain port) by delegating to `JpaProductRepository` and using `ProductMapper` to convert.
 
 #### 4b. Security (`infrastructure/security/`)
 
@@ -212,7 +216,16 @@ Sub-layers:
 | `JwtAuthenticationFilter` | A `OncePerRequestFilter` that extracts JWT from `Authorization` header and sets `SecurityContext` |
 | `SecurityContextProviderImpl` | Implements `SecurityContextProvider` — reads userId from Spring's `SecurityContextHolder` |
 
-#### 4c. Config (`infrastructure/config/`)
+#### 4c. Client (`infrastructure/client/`)
+
+| Class | Role |
+|-------|------|
+| `OpenRouterClient` | Implements `AiClient` — sends chat messages to OpenRouter API via `RestClient`, handles model fallback chain with sticky failover, parses tool calls from LLM responses |
+| `OpenRouterProperties` | `@ConfigurationProperties(prefix = "openrouter")` — holds API key, base URL, primary model, and fallback model list |
+
+The AI chatbot uses a **tool-calling agentic loop**: the LLM can request tool executions (`search_products`, `add_to_cart`, `view_cart`, etc.) which are dispatched to `ChatToolExecutorImpl`, which in turn calls back into inbound ports (`ProductUseCase`, `CartUseCase`).
+
+#### 4d. Config (`infrastructure/config/`)
 
 | Class | Role |
 |-------|------|
@@ -220,35 +233,38 @@ Sub-layers:
 | `GlobalExceptionHandler` | `@RestControllerAdvice` that maps domain exceptions to HTTP responses |
 | `DomainServiceConfig` | `@Configuration` that instantiates domain services (since they're plain Java, not Spring beans) |
 | `PasswordEncryptionImpl` | Implements `PasswordEncryption` using BCrypt |
-| `OpenApiConfig` | Swagger/OpenAPI configuration |
+| `OpenApiConfig` | Swagger/OpenAPI configuration with JWT bearer auth scheme |
+| `CorsConfig` | CORS configuration — allows `http://localhost:4200` (Angular dev server) on `/api/**` |
+| `CvDataConfig` | Loads `cv-data.md` from classpath and provides it as a `CvDataProvider` bean for the AI chatbot |
+| `ChatToolExecutorImpl` | Implements `ChatToolExecutor` — dispatches AI tool calls to the appropriate use-case services |
+| `DotEnvEnvironmentPostProcessor` | Custom `ApplicationListener` that reads `.env` files and injects properties into Spring's environment |
 
 ---
 
-## Data Flow Example: Create a Card
+## Data Flow Example: Add Product to Cart
 
 ```
-Client POST /api/cards {"title":"Task","position":1,"listId":10}
+Client POST /api/cart?productId=5&quantity=2  (with JWT Bearer token)
   │
   ▼
-CardController.createCard(CreateCardRequest)
-  │  Parses JSON → DTO → domain Card object
-  │  Calls inbound port
+CartController.addToCart(productId=5, quantity=2)
+  │  Delegates to inbound port
   ▼
-CardUseCase.createCard(Card card)  [interface — application/port/in]
+CartUseCase.addToCart(productId, quantity)  [interface — application/port/in]
   │
   ▼
-CardUseCaseService.createCard(Card card)  [implementation — application/service]
-  │  1. Calls listRepository.findById(card.listId)  ─→ outbound port ─→ JPA adapter
-  │  2. Calls boardRepository.findById(list.boardId) ─→ outbound port ─→ JPA adapter
-  │  3. Calls securityContextProvider.getCurrentUserId() ─→ outbound port ─→ SecurityContext
-  │  4. Compares board.ownerId with currentUserId — throws UnauthorizedAccessException if mismatch
-  │  5. Calls cardRepository.save(card) ─→ outbound port ─→ JPA adapter
-  │  Returns saved Card domain object
+CartUseCaseService.addToCart(productId, quantity)  [implementation — application/service]
+  │  1. Calls securityContextProvider.getCurrentUserId()  ─→ outbound port ─→ SecurityContext
+  │  2. Calls productUseCase.getProductById(productId)   ─→ inbound port  ─→ ProductUseCaseService
+  │  3. Calls cartRepository.findByUserAndProduct(userId, productId) ─→ outbound port ─→ JPA adapter
+  │  4. If product already in cart → calls cartRepository.updateQuantity()
+  │     Otherwise → calls cartRepository.addItem(userId, productId, name, price, quantity)
+  │  5. Returns saved CartItem domain object
   ▼
-CardController maps Card → CardResponse (DTO)
+CartController maps CartItem → CartItemResponse (DTO)
   │
   ▼
-HTTP 201 { "id":1, "title":"Task", ... }
+HTTP 200 { "id":12, "productId":5, "productName":"Mechanical Keyboard", "unitPrice":79.99, "quantity":2, "subtotal":159.98 }
 ```
 
 ---

@@ -37,7 +37,7 @@ This repository is stronger than a basic CRUD portfolio app because it demonstra
 | 6 | (DONE) Implement Spring Security `SecurityFilterChain` and JWT auth filter | Very High | Medium | 5-10h |
 | 7 | (DONE) Add OpenAPI/Swagger docs with examples and auth scheme | Very High | Low-Medium | 2-5h |
 | 8 | (DONE) Rewrite root README with setup, architecture, API, screenshots, test commands, and demo flow | Very High | Low | 2-4h |
-| 9 | Fix `arch.md` so it describes the e-commerce domain, not Trello/board examples | High | Low | 1-2h |
+| 9 | (DONE) Fix `arch.md` so it describes the e-commerce domain, not Trello/board examples | High | Low | 1-2h |
 | 10 | Add Testcontainers integration tests against PostgreSQL | High | Medium | 5-10h |
 | 11 | Add coverage thresholds via JaCoCo and publish badge/report | High | Low-Medium | 2-4h |
 | 12 | Add proper `404 Not Found` behavior for missing products, cart items, and users | High | Low | 1-3h |
