@@ -34,7 +34,7 @@ jobs:
         run: chmod +x mvnw
 
       - name: Build & Test
-        run: ./mvnw verify -B
+        run: ./mvnw verify -B -DnvdApiKey=$NVD_API_KEY
         env:
           OPENROUTER_API_KEY: ci-placeholder
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
