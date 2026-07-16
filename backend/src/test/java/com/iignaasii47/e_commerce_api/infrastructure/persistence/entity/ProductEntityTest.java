@@ -9,11 +9,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ProductEntityTest {
 
     @Test
-    void shouldCreateWithBuilder() {
-        ProductEntity entity = ProductEntity.builder()
-                .id(1L).name("Keyboard").description("desc")
-                .price(new BigDecimal("149.99")).category("peripherals").imageUrl("img")
-                .stock(10).rating(4.5).build();
+    void shouldCreateWithConstructor() {
+        ProductEntity entity = new ProductEntity(1L, "Keyboard", "desc",
+                new BigDecimal("149.99"), "peripherals", "img", 10, 4.5);
 
         assertThat(entity.getId()).isEqualTo(1L);
         assertThat(entity.getName()).isEqualTo("Keyboard");

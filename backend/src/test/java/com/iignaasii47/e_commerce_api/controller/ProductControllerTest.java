@@ -1,6 +1,8 @@
 package com.iignaasii47.e_commerce_api.controller;
 
+import com.iignaasii47.e_commerce_api.application.port.in.ProductImageUseCase;
 import com.iignaasii47.e_commerce_api.application.port.in.ProductUseCase;
+import com.iignaasii47.e_commerce_api.domain.model.ImageData;
 import com.iignaasii47.e_commerce_api.domain.model.Product;
 import com.iignaasii47.e_commerce_api.util.TestFixtures;
 
@@ -15,6 +17,7 @@ import java.util.Optional;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -26,6 +29,9 @@ class ProductControllerTest {
 
     @MockitoBean
     private ProductUseCase productUseCase;
+
+    @MockitoBean
+    private ProductImageUseCase productImageUseCase;
 
     @Test
     void shouldReturnAllProducts() throws Exception {
@@ -84,4 +90,33 @@ class ProductControllerTest {
                 .andExpect(jsonPath("$[1]").value("audio"));
     }
 
+    @Test
+    void shouldReturnImageWhenStoredInDb() throws Exception {
+        when(productImageUseCase.getImage(1L))
+                .thenReturn(Optional.of(new ImageData(new byte[]{1, 2, 3}, "image/png")));
+
+        mockMvc.perform(get("/api/products/1/image"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "image/png"));
+    }
+
+    @Test
+    void shouldFallbackToImageUrlWhenNoStoredImage() throws Exception {
+        Product product = TestFixtures.aKeyboardProduct();
+        when(productImageUseCase.getImage(1L)).thenReturn(Optional.empty());
+        when(productUseCase.getProductById(1L)).thenReturn(Optional.of(product));
+
+        mockMvc.perform(get("/api/products/1/image"))
+                .andExpect(status().isFound())
+                .andExpect(header().string("Location", "http://img.url"));
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenNoImageAndNoUrl() throws Exception {
+        when(productImageUseCase.getImage(1L)).thenReturn(Optional.empty());
+        when(productUseCase.getProductById(1L)).thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/api/products/1/image"))
+                .andExpect(status().isNotFound());
+    }
 }

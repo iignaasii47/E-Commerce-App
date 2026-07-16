@@ -28,16 +28,9 @@ public class ProductMapper {
         if (product == null) {
             return null;
         }
-        return ProductEntity.builder()
-                .id(product.getId())
-                .name(product.getName())
-                .description(product.getDescription())
-                .price(product.getPrice())
-                .category(product.getCategory())
-                .imageUrl(product.getImageUrl())
-                .stock(product.getStock())
-                .rating(product.getRating())
-                .build();
+        return new ProductEntity(product.getId(), product.getName(), product.getDescription(),
+                product.getPrice(), product.getCategory(), product.getImageUrl(),
+                product.getStock(), product.getRating());
     }
 
 }
