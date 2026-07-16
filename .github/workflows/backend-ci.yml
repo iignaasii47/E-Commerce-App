@@ -37,6 +37,7 @@ jobs:
         run: ./mvnw verify -B
         env:
           OPENROUTER_API_KEY: ci-placeholder
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
 
       - name: Upload Coverage Report
         if: always()
