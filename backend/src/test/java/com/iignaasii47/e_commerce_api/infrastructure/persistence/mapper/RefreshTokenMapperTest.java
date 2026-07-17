@@ -27,7 +27,7 @@ class RefreshTokenMapperTest {
         assertThat(entity.getUser()).isNotNull();
         assertThat(entity.getUser().getId()).isEqualTo(10L);
         assertThat(entity.getExpiryDate()).isEqualTo(FIXED_TIME.plusDays(7));
-        assertThat(entity.isRevoked()).isEqualTo(false);
+        assertThat(entity.isRevoked()).isFalse();
         assertThat(entity.getCreatedAt()).isEqualTo(FIXED_TIME);
     }
 
@@ -44,7 +44,7 @@ class RefreshTokenMapperTest {
         assertThat(domain.getToken()).isEqualTo("entity-token");
         assertThat(domain.getUserId()).isEqualTo(10L);
         assertThat(domain.getExpiryDate()).isEqualTo(FIXED_TIME.plusDays(14));
-        assertThat(domain.isRevoked()).isEqualTo(true);
+        assertThat(domain.isRevoked()).isTrue();
         assertThat(domain.getCreatedAt()).isEqualTo(FIXED_TIME);
     }
 }

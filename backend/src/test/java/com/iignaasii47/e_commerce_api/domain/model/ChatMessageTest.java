@@ -108,6 +108,6 @@ class ChatMessageTest {
     void shouldProduceToString() {
         ChatMessage message = new ChatMessage("assistant", "Hello!");
 
-        assertThat(message.toString()).isEqualTo("assistant: Hello!");
+        assertThat(message).hasToString("assistant: Hello!");
     }
 }

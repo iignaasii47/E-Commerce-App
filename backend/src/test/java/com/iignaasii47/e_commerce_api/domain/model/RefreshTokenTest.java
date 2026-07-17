@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.time.Month;
-import java.time.ZoneOffset;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -82,7 +81,7 @@ class RefreshTokenTest {
 
     @Test
     void shouldReturnCorrectExpiryDate() {
-        LocalDateTime twoHoursFromNow = LocalDateTime.now(ZoneOffset.UTC).plusHours(2);
+        LocalDateTime twoHoursFromNow = FIXED_TIME.plusHours(2);
         RefreshToken token = new RefreshToken(1L, "t", 10L, twoHoursFromNow, false, FIXED_TIME);
 
         assertThat(token.getExpiryDate()).isEqualTo(twoHoursFromNow);
