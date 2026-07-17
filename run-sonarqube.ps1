@@ -13,7 +13,8 @@ Write-Host "=== Running SonarQube scan for Backend ==="
 Set-Location "$root\backend"
 & ./mvnw.cmd clean verify sonar:sonar `
   "-Dsonar.host.url=http://localhost:9000" `
-  "-Dsonar.token=$env:SONAR_TOKEN"
+  "-Dsonar.token=$env:SONAR_TOKEN" `
+  "-DnvdApiKey=$env:NVD_API_KEY"
 if ($LASTEXITCODE -ne 0) {
     Write-Host "ERROR: Backend SonarQube scan failed with exit code $LASTEXITCODE."
     exit $LASTEXITCODE
