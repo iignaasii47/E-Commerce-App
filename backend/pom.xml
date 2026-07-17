@@ -146,7 +146,7 @@
 				<configuration>
 					<url>jdbc:postgresql://localhost:5432/ecommerce-db</url>
 					<user>postgres</user>
-					<password>postgres</password>
+					<password>${env.POSTGRES_PASSWORD}</password>
 					<baselineOnMigrate>true</baselineOnMigrate>
 					<baselineVersion>1</baselineVersion>
 				</configuration>
