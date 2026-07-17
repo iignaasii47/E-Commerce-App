@@ -1,8 +1,11 @@
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
+$envFile = Join-Path $root ".env"
 
-Get-Content "$root\backend\.env" | ForEach-Object {
-    if ($_ -match '^\s*([^#=]+?)\s*=\s*(.+?)\s*$') {
-        [Environment]::SetEnvironmentVariable($matches[1], $matches[2], 'Process')
+if (Test-Path $envFile) {
+    Get-Content $envFile | ForEach-Object {
+        if ($_ -match '^\s*([^#=]+?)\s*=\s*(.*?)\s*$') {
+            [Environment]::SetEnvironmentVariable($matches[1], $matches[2], 'Process')
+        }
     }
 }
 

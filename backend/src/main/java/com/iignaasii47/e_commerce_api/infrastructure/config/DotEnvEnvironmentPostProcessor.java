@@ -56,6 +56,7 @@ public class DotEnvEnvironmentPostProcessor implements ApplicationListener<Appli
     private static Path findEnvFile() {
         return Stream.of(
                 Paths.get(ENV_FILE),
+                Paths.get("..", ENV_FILE),
                 Paths.get("backend", ENV_FILE)
         )
                 .filter(Files::exists)

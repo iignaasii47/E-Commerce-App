@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 if ! command -v docker &>/dev/null; then
     echo "ERROR: Docker is not installed or not in PATH."
     exit 1
@@ -36,4 +38,4 @@ if ! docker info &>/dev/null; then
     fi
 fi
 
-docker compose up --build
+docker compose --project-directory "$script_dir" up --build

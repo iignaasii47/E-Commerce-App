@@ -1,2 +1,29 @@
 ### Environment ###
 .env
+.env.*
+!.env.template
+
+### Frontend / Angular ###
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/coverage/
+frontend/out-tsc/
+frontend/*.tsbuildinfo
+frontend/tsconfig.*.tsbuildinfo
+
+### Backend / Maven / Spring ###
+backend/target/
+backend/logs/
+backend/*.log
+
+### Logs ###
+*.log
+docker-logs*.txt
+
+### IDE / OS ###
+.vscode/
+.idea/
+*.iml
+.DS_Store
+Thumbs.db

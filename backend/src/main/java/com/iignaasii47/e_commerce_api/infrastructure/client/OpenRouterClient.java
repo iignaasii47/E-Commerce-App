@@ -37,7 +37,7 @@ public class OpenRouterClient implements AiClient {
         if (apiKey == null || apiKey.isBlank()) {
             throw new AiServiceException(
                     "OpenRouter API key is not configured. "
-                    + "Add OPENROUTER_API_KEY to the .env file in the backend directory.");
+                    + "Add OPENROUTER_API_KEY to the root .env file.");
         }
 
         List<String> models = new ArrayList<>();
