@@ -38,6 +38,7 @@ public class ProductEntity {
     private ProductImageEntity image;
 
     public ProductEntity() {
+        // no-arg constructor required by JPA
     }
 
     public Long getId() { return id; }

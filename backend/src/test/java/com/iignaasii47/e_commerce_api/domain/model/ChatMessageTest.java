@@ -7,114 +7,107 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ChatMessageTest {
 
     @Test
-    void shouldStoreRoleAndContent() {
-        ChatMessage msg = new ChatMessage("user", "hello");
-
-        assertThat(msg.getRole()).isEqualTo("user");
-        assertThat(msg.getContent()).isEqualTo("hello");
-    }
-
-    @Test
     void shouldCreateUserMessage() {
-        ChatMessage msg = ChatMessage.user("hello");
+        ChatMessage message = ChatMessage.user("hello");
 
-        assertThat(msg.getRole()).isEqualTo("user");
-        assertThat(msg.getContent()).isEqualTo("hello");
+        assertThat(message.getRole()).isEqualTo("user");
+        assertThat(message.getContent()).isEqualTo("hello");
+        assertThat(message.getToolCallId()).isNull();
     }
 
     @Test
     void shouldCreateAssistantMessage() {
-        ChatMessage msg = ChatMessage.assistant("response");
+        ChatMessage message = ChatMessage.assistant("response");
 
-        assertThat(msg.getRole()).isEqualTo("assistant");
-        assertThat(msg.getContent()).isEqualTo("response");
+        assertThat(message.getRole()).isEqualTo("assistant");
+        assertThat(message.getContent()).isEqualTo("response");
+        assertThat(message.getToolCallId()).isNull();
     }
 
     @Test
     void shouldCreateSystemMessage() {
-        ChatMessage msg = ChatMessage.system("instructions");
+        ChatMessage message = ChatMessage.system("instructions");
 
-        assertThat(msg.getRole()).isEqualTo("system");
-        assertThat(msg.getContent()).isEqualTo("instructions");
-    }
-
-    @Test
-    void shouldEqualWhenSameRoleAndContent() {
-        ChatMessage msg1 = new ChatMessage("user", "hello");
-        ChatMessage msg2 = new ChatMessage("user", "hello");
-
-        assertThat(msg1).isEqualTo(msg2).hasSameHashCodeAs(msg2);
-    }
-
-    @Test
-    void shouldNotEqualWhenDifferentRole() {
-        ChatMessage msg1 = new ChatMessage("user", "hello");
-        ChatMessage msg2 = new ChatMessage("assistant", "hello");
-
-        assertThat(msg1).isNotEqualTo(msg2);
-    }
-
-    @Test
-    void shouldNotEqualWhenDifferentContent() {
-        ChatMessage msg1 = new ChatMessage("user", "hello");
-        ChatMessage msg2 = new ChatMessage("user", "world");
-
-        assertThat(msg1).isNotEqualTo(msg2);
-    }
-
-    @Test
-    void shouldNotEqualNull() {
-        ChatMessage msg = new ChatMessage("user", "hello");
-
-        assertThat(msg).isNotEqualTo(null);
-    }
-
-    @Test
-    void shouldNotEqualDifferentType() {
-        ChatMessage msg = new ChatMessage("user", "hello");
-
-        assertThat(msg).isNotEqualTo("not a message");
-    }
-
-    @Test
-    void shouldHaveToString() {
-        ChatMessage msg = new ChatMessage("user", "hello");
-
-        assertThat(msg.toString()).contains("user", "hello");
+        assertThat(message.getRole()).isEqualTo("system");
+        assertThat(message.getContent()).isEqualTo("instructions");
+        assertThat(message.getToolCallId()).isNull();
     }
 
     @Test
     void shouldCreateToolMessage() {
-        ChatMessage msg = ChatMessage.tool("call_123", "tool result");
+        ChatMessage message = ChatMessage.tool("call-1", "result");
 
-        assertThat(msg.getRole()).isEqualTo("tool");
-        assertThat(msg.getContent()).isEqualTo("tool result");
-        assertThat(msg.getToolCallId()).isEqualTo("call_123");
+        assertThat(message.getRole()).isEqualTo("tool");
+        assertThat(message.getContent()).isEqualTo("result");
+        assertThat(message.getToolCallId()).isEqualTo("call-1");
     }
 
     @Test
-    void shouldStoreToolCallIdInConstructor() {
-        ChatMessage msg = new ChatMessage("tool", "result", "call_abc");
+    void shouldCreateWithTwoArgConstructor() {
+        ChatMessage message = new ChatMessage("assistant", "Hello world");
 
-        assertThat(msg.getRole()).isEqualTo("tool");
-        assertThat(msg.getContent()).isEqualTo("result");
-        assertThat(msg.getToolCallId()).isEqualTo("call_abc");
+        assertThat(message.getRole()).isEqualTo("assistant");
+        assertThat(message.getContent()).isEqualTo("Hello world");
+        assertThat(message.getToolCallId()).isNull();
     }
 
     @Test
-    void shouldEqualWhenSameToolCallId() {
-        ChatMessage msg1 = new ChatMessage("tool", "result", "call_1");
-        ChatMessage msg2 = new ChatMessage("tool", "result", "call_1");
+    void shouldNotBeEqualToNull() {
+        ChatMessage message = ChatMessage.user("hi");
 
-        assertThat(msg1).isEqualTo(msg2).hasSameHashCodeAs(msg2);
+        assertThat(message).isNotNull();
     }
 
     @Test
-    void shouldNotEqualWhenDifferentToolCallId() {
-        ChatMessage msg1 = new ChatMessage("tool", "result", "call_1");
-        ChatMessage msg2 = new ChatMessage("tool", "result", "call_2");
+    void shouldBeEqualToIdenticalMessage() {
+        ChatMessage a = new ChatMessage("user", "hello", null);
+        ChatMessage b = new ChatMessage("user", "hello", null);
 
-        assertThat(msg1).isNotEqualTo(msg2);
+        assertThat(a).isEqualTo(b).hasSameHashCodeAs(b);
     }
 
+    @Test
+    void shouldNotBeEqualToDifferentRole() {
+        ChatMessage a = new ChatMessage("user", "hello", null);
+        ChatMessage b = new ChatMessage("assistant", "hello", null);
+
+        assertThat(a).isNotEqualTo(b);
+    }
+
+    @Test
+    void shouldNotBeEqualToDifferentContent() {
+        ChatMessage a = new ChatMessage("user", "hello", null);
+        ChatMessage b = new ChatMessage("user", "world", null);
+
+        assertThat(a).isNotEqualTo(b);
+    }
+
+    @Test
+    void shouldNotBeEqualToDifferentToolCallId() {
+        ChatMessage a = new ChatMessage("tool", "result", "call-1");
+        ChatMessage b = new ChatMessage("tool", "result", "call-2");
+
+        assertThat(a).isNotEqualTo(b);
+    }
+
+    @Test
+    void shouldBeEqualToItself() {
+        ChatMessage message = ChatMessage.user("hello");
+
+        assertThat(message).isEqualTo(message);
+    }
+
+    @Test
+    void shouldNotBeEqualToDifferentClass() {
+        ChatMessage message = ChatMessage.user("hello");
+
+        assertThat(message).isNotEqualTo("hello");
+    }
+
+    @Test
+    void shouldProduceToString() {
+        ChatMessage message = new ChatMessage("assistant", "Hello!");
+
+        assertThat(message.toString()).isEqualTo("assistant: Hello!");
+    }
 }
