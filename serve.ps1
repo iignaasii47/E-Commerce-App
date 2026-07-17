@@ -15,5 +15,5 @@ if (-not $pgRunning) {
     Write-Host "PostgreSQL is already running."
 }
 
-Start-Process powershell -ArgumentList '-NoExit', '-Command', "Set-Location '$root\backend'; ./mvnw.cmd spring-boot:run"
+Start-Process powershell -ArgumentList '-NoExit', '-Command', "Set-Location '$root\backend'; ./serve-api.ps1"
 Start-Process powershell -ArgumentList '-NoExit', '-Command', "Set-Location '$root\frontend'; npx.cmd ng serve"

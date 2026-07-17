@@ -1,0 +1,10 @@
+node_modules
+dist
+.angular
+.git
+*.log
+.vscode
+README.md
+serve-web.ps1
+.env.template
+sonar-project.properties

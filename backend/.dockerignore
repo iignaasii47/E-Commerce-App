@@ -1,0 +1,8 @@
+target
+*.log
+logs
+.git
+.mvn/wrapper/maven-wrapper.jar.bak
+.env.template
+dependency-check-suppressions.xml
+serve-api.ps1
