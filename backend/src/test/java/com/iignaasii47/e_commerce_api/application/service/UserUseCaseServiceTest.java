@@ -136,10 +136,9 @@ class UserUseCaseServiceTest {
 
     @Test
     void shouldRefreshAndReturnNewTokens() {
-        LocalDateTime now = LocalDateTime.now(java.time.ZoneOffset.UTC);
-        User user = new User(1L, "john", "john@example.com", "encrypted", now);
+        User user = new User(1L, "john", "john@example.com", "encrypted", FIXED_TIME);
         RefreshToken storedToken = new RefreshToken(10L, "old-refresh", 1L,
-                now.plusDays(7), false, now);
+                FIXED_TIME.plusYears(100), false, FIXED_TIME);
 
         when(tokenService.validateRefreshTokenAndGetUserId("old-refresh")).thenReturn(1L);
         when(refreshTokenRepository.findByToken("old-refresh")).thenReturn(Optional.of(storedToken));
@@ -156,9 +155,8 @@ class UserUseCaseServiceTest {
 
     @Test
     void shouldThrowWhenRefreshTokenRevoked() {
-        LocalDateTime now = LocalDateTime.now(java.time.ZoneOffset.UTC);
         RefreshToken revokedToken = new RefreshToken(10L, "old-refresh", 1L,
-                now.plusDays(7), true, now);
+                FIXED_TIME.plusYears(100), true, FIXED_TIME);
 
         when(tokenService.validateRefreshTokenAndGetUserId("old-refresh")).thenReturn(1L);
         when(refreshTokenRepository.findByToken("old-refresh")).thenReturn(Optional.of(revokedToken));
@@ -185,9 +183,8 @@ class UserUseCaseServiceTest {
 
     @Test
     void shouldLogoutAndRevokeToken() {
-        LocalDateTime now = LocalDateTime.now(java.time.ZoneOffset.UTC);
         RefreshToken storedToken = new RefreshToken(10L, "refresh-value", 1L,
-                now.plusDays(7), false, now);
+                FIXED_TIME.plusDays(7), false, FIXED_TIME);
 
         when(refreshTokenRepository.findByToken("refresh-value")).thenReturn(Optional.of(storedToken));
 

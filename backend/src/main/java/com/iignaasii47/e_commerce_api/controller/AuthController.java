@@ -34,11 +34,9 @@ public class AuthController {
                     + "The old refresh token is invalidated (single-use rotation).")
     @ApiResponse(responseCode = "200", description = "New token pair returned")
     @ApiResponse(responseCode = "400", description = "Validation error in request body",
-            content = @Content(schema = @Schema(example = """
-                    {"timestamp":"2026-07-16T10:30:00Z","status":400,"error":"Bad Request","message":"refreshToken: must not be blank"}""")))
+            content = @Content(schema = @Schema(example = "{\"timestamp\":\"2026-07-16T10:30:00Z\",\"status\":400,\"error\":\"Bad Request\",\"message\":\"refreshToken: must not be blank\"}")))
     @ApiResponse(responseCode = "401", description = "Invalid, expired, or revoked refresh token",
-            content = @Content(schema = @Schema(example = """
-                    {"timestamp":"2026-07-16T10:30:00Z","status":401,"error":"Unauthorized","message":"Refresh token has expired"}""")))
+            content = @Content(schema = @Schema(example = "{\"timestamp\":\"2026-07-16T10:30:00Z\",\"status\":401,\"error\":\"Unauthorized\",\"message\":\"Refresh token has expired\"}")))
     public LoginResponse refresh(@Valid @RequestBody RefreshTokenRequest request) {
         return LoginResponse.from(userUseCase.refresh(request.refreshToken()));
     }
@@ -48,8 +46,7 @@ public class AuthController {
             description = "Invalidates the provided refresh token so it can no longer be used.")
     @ApiResponse(responseCode = "200", description = "Logged out successfully")
     @ApiResponse(responseCode = "400", description = "Validation error in request body",
-            content = @Content(schema = @Schema(example = """
-                    {"timestamp":"2026-07-16T10:30:00Z","status":400,"error":"Bad Request","message":"refreshToken: must not be blank"}""")))
+            content = @Content(schema = @Schema(example = "{\"timestamp\":\"2026-07-16T10:30:00Z\",\"status\":400,\"error\":\"Bad Request\",\"message\":\"refreshToken: must not be blank\"}")))
     public void logout(@Valid @RequestBody RefreshTokenRequest request) {
         userUseCase.logout(request.refreshToken());
     }

@@ -21,8 +21,16 @@ public final class TestFixtures {
     }
 
     public static ProductEntity aKeyboardProductEntity() {
-        return new ProductEntity(1L, "Keyboard", "A keyboard",
-                new BigDecimal("149.99"), "peripherals", "http://img.url", 10, 4.5);
+        ProductEntity entity = new ProductEntity();
+        entity.setId(1L);
+        entity.setName("Keyboard");
+        entity.setDescription("A keyboard");
+        entity.setPrice(new BigDecimal("149.99"));
+        entity.setCategory("peripherals");
+        entity.setImageUrl("http://img.url");
+        entity.setStock(10);
+        entity.setRating(4.5);
+        return entity;
     }
 
     public static User aJohnUser() {

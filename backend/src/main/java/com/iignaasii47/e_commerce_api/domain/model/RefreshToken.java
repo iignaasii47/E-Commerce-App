@@ -49,10 +49,6 @@ public class RefreshToken {
         return expiryDate;
     }
 
-    public boolean isRevokedRaw() {
-        return revoked;
-    }
-
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }

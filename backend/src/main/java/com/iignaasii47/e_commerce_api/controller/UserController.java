@@ -39,11 +39,9 @@ public class UserController {
             description = "Creates a new user account. Username and email must be unique.")
     @ApiResponse(responseCode = "201", description = "User registered successfully")
     @ApiResponse(responseCode = "400", description = "Validation error in request body",
-            content = @Content(schema = @Schema(example = """
-                    {"timestamp":"2026-07-16T10:30:00Z","status":400,"error":"Bad Request","message":"email: must be a well-formed email address"}""")))
+            content = @Content(schema = @Schema(example = "{\"timestamp\":\"2026-07-16T10:30:00Z\",\"status\":400,\"error\":\"Bad Request\",\"message\":\"email: must be a well-formed email address\"}")))
     @ApiResponse(responseCode = "409", description = "Username or email already taken",
-            content = @Content(schema = @Schema(example = """
-                    {"timestamp":"2026-07-16T10:30:00Z","status":409,"error":"Conflict","message":"Username 'john_doe' is already taken"}""")))
+            content = @Content(schema = @Schema(example = "{\"timestamp\":\"2026-07-16T10:30:00Z\",\"status\":409,\"error\":\"Conflict\",\"message\":\"Username 'john_doe' is already taken\"}")))
     public UserResponse register(@Valid @RequestBody CreateUserRequest request) {
         User user = new User(null, request.username(), request.email(), request.password(), null);
         User created = userUseCase.register(user);
@@ -56,11 +54,9 @@ public class UserController {
                     + "The token expires after 24 hours.")
     @ApiResponse(responseCode = "200", description = "Login successful, JWT token returned")
     @ApiResponse(responseCode = "400", description = "Validation error in request body",
-            content = @Content(schema = @Schema(example = """
-                    {"timestamp":"2026-07-16T10:30:00Z","status":400,"error":"Bad Request","message":"email: must not be blank"}""")))
+            content = @Content(schema = @Schema(example = "{\"timestamp\":\"2026-07-16T10:30:00Z\",\"status\":400,\"error\":\"Bad Request\",\"message\":\"email: must not be blank\"}")))
     @ApiResponse(responseCode = "401", description = "Invalid email or password",
-            content = @Content(schema = @Schema(example = """
-                    {"timestamp":"2026-07-16T10:30:00Z","status":401,"error":"Unauthorized","message":"Invalid email or password"}""")))
+            content = @Content(schema = @Schema(example = "{\"timestamp\":\"2026-07-16T10:30:00Z\",\"status\":401,\"error\":\"Unauthorized\",\"message\":\"Invalid email or password\"}")))
     public LoginResponse login(@Valid @RequestBody LoginRequest request) {
         return LoginResponse.from(userUseCase.login(request.email(), request.password()));
     }

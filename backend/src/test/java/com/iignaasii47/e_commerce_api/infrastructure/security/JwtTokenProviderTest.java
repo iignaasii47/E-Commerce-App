@@ -9,8 +9,6 @@ import org.junit.jupiter.api.Test;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
-import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -169,12 +167,6 @@ class JwtTokenProviderTest {
     void shouldThrowWhenTokenIsExpired() {
         JwtTokenProvider shortLivedProvider = new JwtTokenProvider(SECRET, 1L, 1L);
         String token = shortLivedProvider.generateAccessToken(1L, "john");
-
-        try {
-            Thread.sleep(5);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
 
         assertThatThrownBy(() -> shortLivedProvider.validateAccessTokenAndGetUserId(token))
                 .isInstanceOf(JwtException.class);

@@ -14,6 +14,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class OpenApiConfig {
 
+    private static final String BEARER_AUTH = "bearerAuth";
+
     @Bean
     public OpenAPI openAPI() {
         return new OpenAPI()
@@ -29,10 +31,10 @@ public class OpenApiConfig {
                         .license(new License()
                                 .name("MIT")
                                 .url("https://opensource.org/licenses/MIT")))
-                .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
+                .addSecurityItem(new SecurityRequirement().addList(BEARER_AUTH))
                 .components(new Components()
-                        .addSecuritySchemes("bearerAuth", new SecurityScheme()
-                                .name("bearerAuth")
+                        .addSecuritySchemes(BEARER_AUTH, new SecurityScheme()
+                                .name(BEARER_AUTH)
                                 .type(SecurityScheme.Type.HTTP)
                                 .scheme("bearer")
                                 .bearerFormat("JWT")

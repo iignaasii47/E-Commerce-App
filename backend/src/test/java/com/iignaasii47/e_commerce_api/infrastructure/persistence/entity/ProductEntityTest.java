@@ -9,9 +9,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ProductEntityTest {
 
     @Test
-    void shouldCreateWithConstructor() {
-        ProductEntity entity = new ProductEntity(1L, "Keyboard", "desc",
-                new BigDecimal("149.99"), "peripherals", "img", 10, 4.5);
+    void shouldCreateWithSetters() {
+        ProductEntity entity = new ProductEntity();
+        entity.setId(1L);
+        entity.setName("Keyboard");
+        entity.setDescription("desc");
+        entity.setPrice(new BigDecimal("149.99"));
+        entity.setCategory("peripherals");
+        entity.setImageUrl("img");
+        entity.setStock(10);
+        entity.setRating(4.5);
 
         assertThat(entity.getId()).isEqualTo(1L);
         assertThat(entity.getName()).isEqualTo("Keyboard");

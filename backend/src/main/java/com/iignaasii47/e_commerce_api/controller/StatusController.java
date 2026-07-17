@@ -30,8 +30,7 @@ public class StatusController {
     @Operation(summary = "Check API and database health",
             description = "Returns the current status of the API and its database connection.")
     @ApiResponse(responseCode = "200", description = "Status report returned successfully",
-            content = @Content(schema = @Schema(example = """
-                    {"api":"UP","database":"UP","timestamp":"2026-07-16T10:30:00Z"}""")))
+            content = @Content(schema = @Schema(example = "{\"api\":\"UP\",\"database\":\"UP\",\"timestamp\":\"2026-07-16T10:30:00Z\"}")))
     public Map<String, Object> status() {
         String dbStatus = "DOWN";
         try (Connection conn = dataSource.getConnection()) {

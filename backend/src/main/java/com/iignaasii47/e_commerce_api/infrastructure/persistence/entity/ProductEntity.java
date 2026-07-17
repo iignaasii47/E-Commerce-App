@@ -40,18 +40,6 @@ public class ProductEntity {
     public ProductEntity() {
     }
 
-    public ProductEntity(Long id, String name, String description, BigDecimal price,
-                         String category, String imageUrl, int stock, double rating) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.price = price;
-        this.category = category;
-        this.imageUrl = imageUrl;
-        this.stock = stock;
-        this.rating = rating;
-    }
-
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getName() { return name; }

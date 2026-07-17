@@ -9,7 +9,6 @@ import com.iignaasii47.e_commerce_api.domain.model.Product;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -88,7 +87,7 @@ public class ProductController {
     @ApiResponse(responseCode = "200", description = "Image binary returned")
     @ApiResponse(responseCode = "302", description = "Redirect to external image URL")
     @ApiResponse(responseCode = "404", description = "No image available", content = @Content)
-    public ResponseEntity<?> getImage(
+    public ResponseEntity<Object> getImage(
             @Parameter(description = "Product identifier", example = "1")
             @PathVariable Long id) {
         Optional<ImageData> imageData = productImageUseCase.getImage(id);

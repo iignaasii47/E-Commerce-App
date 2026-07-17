@@ -41,8 +41,7 @@ public class ChatController {
                     + "Include previous messages in the history for conversational context.")
     @ApiResponse(responseCode = "200", description = "Assistant replied successfully")
     @ApiResponse(responseCode = "400", description = "Validation error (blank message)",
-            content = @Content(schema = @Schema(example = """
-                    {"timestamp":"2026-07-16T10:30:00Z","status":400,"error":"Bad Request","message":"message: must not be blank"}""")))
+            content = @Content(schema = @Schema(example = "{\"timestamp\":\"2026-07-16T10:30:00Z\",\"status\":400,\"error\":\"Bad Request\",\"message\":\"message: must not be blank\"}")))
     @ApiResponse(responseCode = "401", description = "Missing or invalid JWT token",
             content = @Content)
     public ChatResponse chat(@Valid @RequestBody ChatRequest request) {

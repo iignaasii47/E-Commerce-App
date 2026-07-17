@@ -41,9 +41,9 @@ public class ChatToolExecutorImpl implements ChatToolExecutor {
                 case "search_products" -> executeSearchProducts(args);
                 case "get_product" -> executeGetProduct(args);
                 case "list_categories" -> executeListCategories();
-                case "add_to_cart" -> executeAddToCart(args, userId);
-                case "remove_from_cart" -> executeRemoveFromCart(args, userId);
-                case "view_cart" -> executeViewCart(userId);
+                case "add_to_cart" -> executeAddToCart(args);
+                case "remove_from_cart" -> executeRemoveFromCart(args);
+                case "view_cart" -> executeViewCart();
                 default -> "Unknown tool: " + name;
             };
             return new ChatToolResult(toolCall.getId(), name, result);
@@ -70,7 +70,7 @@ public class ChatToolExecutorImpl implements ChatToolExecutor {
         return "Categories: " + String.join(", ", categories);
     }
 
-    private String executeAddToCart(Map<String, Object> args, Long userId) {
+    private String executeAddToCart(Map<String, Object> args) {
         Long productId = toLong(args.get("product_id"));
         int quantity = args.containsKey("quantity") ? toInt(args.get("quantity")) : 1;
         CartItem item = cartUseCase.addToCart(productId, quantity);
@@ -78,13 +78,13 @@ public class ChatToolExecutorImpl implements ChatToolExecutor {
                 + "Cart item ID: " + item.getId();
     }
 
-    private String executeRemoveFromCart(Map<String, Object> args, Long userId) {
+    private String executeRemoveFromCart(Map<String, Object> args) {
         Long cartItemId = toLong(args.get("cart_item_id"));
         cartUseCase.removeFromCart(cartItemId);
         return "Removed cart item " + cartItemId + " from your cart.";
     }
 
-    private String executeViewCart(Long userId) {
+    private String executeViewCart() {
         List<CartItem> items = cartUseCase.getCart();
         if (items.isEmpty()) {
             return "Your cart is empty.";

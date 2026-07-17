@@ -19,6 +19,7 @@ public class JwtTokenProvider implements TokenService {
 
     private static final String TOKEN_TYPE_ACCESS = "access";
     private static final String TOKEN_TYPE_REFRESH = "refresh";
+    private static final String CLAIM_USER_ID = "userId";
 
     private final SecretKey secretKey;
     private final long accessExpirationMs;
@@ -49,7 +50,7 @@ public class JwtTokenProvider implements TokenService {
         if (!TOKEN_TYPE_ACCESS.equals(type)) {
             throw new IllegalArgumentException("Token is not an access token");
         }
-        return claims.get("userId", Long.class);
+        return claims.get(CLAIM_USER_ID, Long.class);
     }
 
     @Override
@@ -59,7 +60,7 @@ public class JwtTokenProvider implements TokenService {
         if (!TOKEN_TYPE_REFRESH.equals(type)) {
             throw new IllegalArgumentException("Token is not a refresh token");
         }
-        return claims.get("userId", Long.class);
+        return claims.get(CLAIM_USER_ID, Long.class);
     }
 
     private String generateToken(Long userId, String username, String type, long expirationMs) {
@@ -68,7 +69,7 @@ public class JwtTokenProvider implements TokenService {
 
         return Jwts.builder()
                 .subject(username)
-                .claim("userId", userId)
+                .claim(CLAIM_USER_ID, userId)
                 .claim("type", type)
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiry))

@@ -17,7 +17,7 @@ public final class RefreshTokenMapper {
                 domain.getToken(),
                 userRef,
                 domain.getExpiryDate(),
-                domain.isRevokedRaw(),
+                domain.isRevoked(),
                 domain.getCreatedAt()
         );
     }
