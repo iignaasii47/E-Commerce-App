@@ -155,6 +155,11 @@ describe('authInterceptor', () => {
       { status: 401, statusText: 'Unauthorized' },
     );
 
+    const logoutReq = httpMock.expectOne(
+      (r) => r.url.includes('/api/auth/logout'),
+    );
+    logoutReq.flush({});
+
     expect(caughtError).toBeDefined();
     expect(authService.isLoggedIn()).toBe(false);
     expect(navigateSpy).toHaveBeenCalledWith(['/login']);
