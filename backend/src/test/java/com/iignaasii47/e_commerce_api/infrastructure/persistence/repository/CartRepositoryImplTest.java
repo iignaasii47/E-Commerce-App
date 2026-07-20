@@ -67,9 +67,9 @@ class CartRepositoryImplTest {
 
     @Test
     void shouldRemoveItem() {
-        cartRepository.removeItem(5L);
+        cartRepository.removeItem(10L, 5L);
 
-        verify(jpaCartItemRepository).deleteById(5L);
+        verify(jpaCartItemRepository).deleteByUserIdAndId(10L, 5L);
     }
 
     @Test

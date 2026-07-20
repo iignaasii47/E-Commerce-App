@@ -46,7 +46,7 @@ This repository is stronger than a basic CRUD portfolio app because it demonstra
 | 15 | Add pagination, sorting, and filtering for product listing | High | Medium | 3-6h |
 | 16 | Add order/checkout domain flow: create order, reserve stock, and clear cart | Very High | Medium-High | 1-2 days |
 | 17 | Add stock validation and prevent negative or invalid cart quantities | High | Low-Medium | 2-4h |
-| 18 | Prevent users from deleting or modifying cart items they do not own | Very High | Low-Medium | 2-4h |
+| 18 | (DONE) Prevent users from deleting or modifying cart items they do not own | Very High | Low-Medium | 2-4h |
 | 19 | Add role model and admin product management endpoints | High | Medium | 1 day |
 | 20 | Add rate limiting for login and chat endpoints | High | Medium | 4-8h |
 | 21 | Add structured request logging with correlation IDs | Medium-High | Medium | 4-8h |

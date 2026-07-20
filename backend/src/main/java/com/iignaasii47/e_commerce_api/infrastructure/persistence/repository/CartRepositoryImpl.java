@@ -36,9 +36,8 @@ public class CartRepositoryImpl implements CartRepository {
     }
 
     @Override
-    @Transactional
-    public void removeItem(Long cartItemId) {
-        jpaCartItemRepository.deleteById(cartItemId);
+    public void removeItem(Long userId, Long cartItemId) {
+        jpaCartItemRepository.deleteByUserIdAndId(userId, cartItemId);
     }
 
     @Override

@@ -58,7 +58,8 @@ public class CartUseCaseService implements CartUseCase {
     @Override
     @Transactional
     public void removeFromCart(Long cartItemId) {
-        cartRepository.removeItem(cartItemId);
+        Long userId = securityContextProvider.getCurrentUserId();
+        cartRepository.removeItem(userId, cartItemId);
     }
 
 }

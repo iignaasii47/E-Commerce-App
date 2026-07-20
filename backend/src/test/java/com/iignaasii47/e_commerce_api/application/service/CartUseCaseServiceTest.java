@@ -111,8 +111,10 @@ class CartUseCaseServiceTest {
 
     @Test
     void shouldRemoveItemFromCart() {
+        when(securityContextProvider.getCurrentUserId()).thenReturn(USER_ID);
+
         cartUseCaseService.removeFromCart(5L);
 
-        verify(cartRepository).removeItem(5L);
+        verify(cartRepository).removeItem(USER_ID, 5L);
     }
 }

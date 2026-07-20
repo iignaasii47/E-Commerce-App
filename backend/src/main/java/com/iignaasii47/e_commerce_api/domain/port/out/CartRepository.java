@@ -11,7 +11,7 @@ public interface CartRepository {
 
     CartItem addItem(Long userId, Long productId, String productName, BigDecimal unitPrice, int quantity);
 
-    void removeItem(Long cartItemId);
+    void removeItem(Long userId, Long cartItemId);
 
     CartItem findByUserAndProduct(Long userId, Long productId);
 
