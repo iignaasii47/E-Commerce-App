@@ -90,12 +90,6 @@ import { StatusService } from '../../services/status.service';
       font-size: 12px;
     }
 
-    .section-label {
-      color: var(--text-muted);
-      font-size: 11px;
-      margin-bottom: 10px;
-    }
-
     .action-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));

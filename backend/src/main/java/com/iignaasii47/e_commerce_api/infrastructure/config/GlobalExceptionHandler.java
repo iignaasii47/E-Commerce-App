@@ -30,45 +30,25 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DuplicateUserException.class)
     public ResponseEntity<Map<String, Object>> handleDuplicateUser(DuplicateUserException ex) {
         log.warn("Duplicate user: {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
-                TIMESTAMP, LocalDateTime.now(ZoneOffset.UTC),
-                STATUS, 409,
-                ERROR, "Conflict",
-                MESSAGE, ex.getMessage()
-        ));
+        return errorResponse(HttpStatus.CONFLICT, "Conflict", ex.getMessage());
     }
 
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<Map<String, Object>> handleInvalidCredentials(InvalidCredentialsException ex) {
         log.warn("Invalid credentials: {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
-                TIMESTAMP, LocalDateTime.now(ZoneOffset.UTC),
-                STATUS, 401,
-                ERROR, "Unauthorized",
-                MESSAGE, ex.getMessage()
-        ));
+        return errorResponse(HttpStatus.UNAUTHORIZED, "Unauthorized", ex.getMessage());
     }
 
     @ExceptionHandler(RefreshTokenException.class)
     public ResponseEntity<Map<String, Object>> handleRefreshToken(RefreshTokenException ex) {
         log.warn("Refresh token error: {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
-                TIMESTAMP, LocalDateTime.now(ZoneOffset.UTC),
-                STATUS, 401,
-                ERROR, "Unauthorized",
-                MESSAGE, ex.getMessage()
-        ));
+        return errorResponse(HttpStatus.UNAUTHORIZED, "Unauthorized", ex.getMessage());
     }
 
     @ExceptionHandler(AiServiceException.class)
     public ResponseEntity<Map<String, Object>> handleAiService(AiServiceException ex) {
         log.error("AI service error: {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(Map.of(
-                TIMESTAMP, LocalDateTime.now(ZoneOffset.UTC),
-                STATUS, 502,
-                ERROR, "Bad Gateway",
-                MESSAGE, ex.getMessage()
-        ));
+        return errorResponse(HttpStatus.BAD_GATEWAY, "Bad Gateway", ex.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -77,22 +57,23 @@ public class GlobalExceptionHandler {
                 .map(e -> e.getField() + ": " + e.getDefaultMessage())
                 .collect(Collectors.joining(", "));
         log.warn("Validation error: {}", errors);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
-                TIMESTAMP, LocalDateTime.now(ZoneOffset.UTC),
-                STATUS, 400,
-                ERROR, "Bad Request",
-                MESSAGE, errors
-        ));
+        return errorResponse(HttpStatus.BAD_REQUEST, "Bad Request", errors);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneric(Exception ex) {
         log.error("Unexpected error", ex);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+        return errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error",
+                "An unexpected error occurred");
+    }
+
+    private ResponseEntity<Map<String, Object>> errorResponse(
+            HttpStatus status, String error, String message) {
+        return ResponseEntity.status(status).body(Map.of(
                 TIMESTAMP, LocalDateTime.now(ZoneOffset.UTC),
-                STATUS, 500,
-                ERROR, "Internal Server Error",
-                MESSAGE, "An unexpected error occurred"
+                STATUS, status.value(),
+                ERROR, error,
+                MESSAGE, message
         ));
     }
 

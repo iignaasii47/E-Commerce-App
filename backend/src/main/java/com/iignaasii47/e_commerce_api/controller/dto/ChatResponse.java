@@ -7,7 +7,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 @Schema(description = "AI assistant response with tool usage metadata")
+@Getter
+@Setter
+@NoArgsConstructor
 public class ChatResponse {
 
     @Schema(description = "The assistant's textual response", example = "I found 3 wireless mice under $100. Here they are: ...")
@@ -16,9 +23,6 @@ public class ChatResponse {
             example = "[\"search_products\", \"get_product\"]")
     private List<String> toolsUsed = new ArrayList<>();
 
-    public ChatResponse() {
-    }
-
     public ChatResponse(String reply, List<String> toolsUsed) {
         this.reply = reply;
         this.toolsUsed = toolsUsed;
@@ -26,22 +30,6 @@ public class ChatResponse {
 
     public static ChatResponse from(ChatResult result) {
         return new ChatResponse(result.getReply(), result.getToolsUsed());
-    }
-
-    public String getReply() {
-        return reply;
-    }
-
-    public void setReply(String reply) {
-        this.reply = reply;
-    }
-
-    public List<String> getToolsUsed() {
-        return toolsUsed;
-    }
-
-    public void setToolsUsed(List<String> toolsUsed) {
-        this.toolsUsed = toolsUsed;
     }
 
 }

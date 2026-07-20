@@ -9,10 +9,18 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+
 import java.math.BigDecimal;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "products")
+@Getter
+@Setter
+@NoArgsConstructor
 public class ProductEntity {
 
     @Id
@@ -37,26 +45,4 @@ public class ProductEntity {
     @JoinColumn(name = "id", referencedColumnName = "product_id", insertable = false, updatable = false)
     private ProductImageEntity image;
 
-    public ProductEntity() {
-        // no-arg constructor required by JPA
-    }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-    public BigDecimal getPrice() { return price; }
-    public void setPrice(BigDecimal price) { this.price = price; }
-    public String getCategory() { return category; }
-    public void setCategory(String category) { this.category = category; }
-    public String getImageUrl() { return imageUrl; }
-    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
-    public int getStock() { return stock; }
-    public void setStock(int stock) { this.stock = stock; }
-    public double getRating() { return rating; }
-    public void setRating(double rating) { this.rating = rating; }
-    public ProductImageEntity getImage() { return image; }
-    public void setImage(ProductImageEntity image) { this.image = image; }
 }

@@ -4,6 +4,8 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 import { ProductService, CartService, NotificationService } from '../../../services';
 import { TerminalButtonComponent } from '../../../components/shared/terminal-button/terminal-button.component';
+import { getStars } from '../../../utils';
+import { Product } from '../../../models';
 
 @Component({
   selector: 'app-product-detail',
@@ -78,18 +80,6 @@ import { TerminalButtonComponent } from '../../../components/shared/terminal-but
     </div>
   `,
   styles: `
-    .back-link {
-      display: inline-block;
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-bottom: 16px;
-      text-decoration: none;
-
-      &:hover {
-        color: var(--accent-cyan);
-      }
-    }
-
     .detail-layout {
       display: grid;
       grid-template-columns: 1fr 300px;
@@ -253,7 +243,7 @@ export class ProductDetailComponent {
     { initialValue: 0 },
   );
 
-  product = signal(this.productService.getProductById(this.productId()));
+  product = signal<Product | undefined>(undefined);
 
   quantity = signal(1);
 
@@ -264,9 +254,7 @@ export class ProductDetailComponent {
     }
   }
 
-  getStars(rating: number): number[] {
-    return Array.from({ length: Math.floor(rating) }, (_, i) => i);
-  }
+  getStars = getStars;
 
   incrementQty(): void {
     const p = this.product();
@@ -281,7 +269,7 @@ export class ProductDetailComponent {
     }
   }
 
-  addToCart(product: { id: number; name: string; price: number; stock: number }): void {
+  addToCart(product: Product): void {
     this.cartService.addToCart(product.id, this.quantity());
     this.notifications.success(`${product.name} added to cart`);
   }

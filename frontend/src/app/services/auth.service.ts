@@ -74,15 +74,7 @@ export class AuthService {
     return this.http.post<LoginResponse>(`${this.apiUrl}/login`, body).pipe(
       tap((res) => {
         this.storeTokens(res.accessToken, res.refreshToken);
-        localStorage.setItem(
-          'user',
-          JSON.stringify({ id: res.id, username: res.username, email: res.email }),
-        );
-        this.currentUser.set({
-          id: res.id,
-          username: res.username,
-          email: res.email,
-        });
+        this.persistUser(res);
       }),
     );
   }
@@ -96,15 +88,7 @@ export class AuthService {
     return this.http.post<LoginResponse>(`${this.authUrl}/refresh`, body).pipe(
       tap((res) => {
         this.storeTokens(res.accessToken, res.refreshToken);
-        localStorage.setItem(
-          'user',
-          JSON.stringify({ id: res.id, username: res.username, email: res.email }),
-        );
-        this.currentUser.set({
-          id: res.id,
-          username: res.username,
-          email: res.email,
-        });
+        this.persistUser(res);
       }),
     );
   }
@@ -128,6 +112,11 @@ export class AuthService {
   private storeTokens(accessToken: string, refreshToken: string): void {
     localStorage.setItem('access_token', accessToken);
     localStorage.setItem('refresh_token', refreshToken);
+  }
+
+  private persistUser(res: { id: number; username: string; email: string }): void {
+    localStorage.setItem('user', JSON.stringify({ id: res.id, username: res.username, email: res.email }));
+    this.currentUser.set({ id: res.id, username: res.username, email: res.email });
   }
 
   private decodeToken(token: string): { exp: number } | null {

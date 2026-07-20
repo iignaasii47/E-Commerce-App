@@ -92,12 +92,6 @@ import { TerminalButtonComponent } from '../../components/shared/terminal-button
       gap: 24px;
     }
 
-    .section-label {
-      color: var(--text-muted);
-      font-size: 11px;
-      margin-bottom: 10px;
-    }
-
     .form-section {
       margin-bottom: 20px;
     }
@@ -143,11 +137,6 @@ import { TerminalButtonComponent } from '../../components/shared/terminal-button
     .empty-state {
       padding: 40px;
       color: var(--text-muted);
-    }
-
-    .back-link {
-      color: var(--accent-cyan);
-      font-size: 12px;
     }
   `,
 })

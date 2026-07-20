@@ -6,7 +6,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.math.BigDecimal;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 @Schema(description = "A single item in the user's shopping cart")
+@Getter
+@NoArgsConstructor
 public class CartItemResponse {
 
     @Schema(description = "Unique cart item identifier", example = "1")
@@ -22,10 +27,6 @@ public class CartItemResponse {
     @Schema(description = "Calculated subtotal (unitPrice * quantity)", example = "299.98")
     private BigDecimal subtotal;
 
-    public CartItemResponse() {
-        // Required for JSON deserialization
-    }
-
     public static CartItemResponse from(CartItem item) {
         CartItemResponse response = new CartItemResponse();
         response.id = item.getId();
@@ -35,30 +36,6 @@ public class CartItemResponse {
         response.quantity = item.getQuantity();
         response.subtotal = item.getSubtotal();
         return response;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public Long getProductId() {
-        return productId;
-    }
-
-    public String getProductName() {
-        return productName;
-    }
-
-    public BigDecimal getUnitPrice() {
-        return unitPrice;
-    }
-
-    public int getQuantity() {
-        return quantity;
-    }
-
-    public BigDecimal getSubtotal() {
-        return subtotal;
     }
 
 }

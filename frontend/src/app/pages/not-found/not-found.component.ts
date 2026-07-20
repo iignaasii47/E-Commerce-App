@@ -44,7 +44,6 @@ import { RouterLink } from '@angular/router';
     .back-link {
       margin-top: 12px;
       color: var(--accent-cyan);
-      font-size: 12px;
 
       &:hover {
         color: var(--accent-green);

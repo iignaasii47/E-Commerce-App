@@ -4,6 +4,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService, NotificationService } from '../../../services';
 import { TerminalInputComponent } from '../../../components/shared/terminal-input/terminal-input.component';
 import { TerminalButtonComponent } from '../../../components/shared/terminal-button/terminal-button.component';
+import { handleHttpError } from '../../../utils';
 
 @Component({
   selector: 'app-login',
@@ -55,66 +56,9 @@ import { TerminalButtonComponent } from '../../../components/shared/terminal-but
     </div>
   `,
   styles: `
-    .auth-page {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .auth-box {
-      width: 100%;
-      max-width: 380px;
-      padding: 24px;
-      border: 1px solid var(--border);
-      background: var(--bg-secondary);
-    }
-
-    .auth-form {
-      margin-top: 16px;
-    }
-
-    .form-fields {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-
-    .error-banner {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 12px;
-      margin-bottom: 12px;
-      border: 1px solid var(--accent-red);
-      background: rgba(255, 95, 86, 0.05);
-      color: var(--accent-red);
-      font-size: 12px;
-    }
-
-    .error-icon {
-      font-weight: 700;
-    }
-
     .auth-actions {
       display: flex;
       justify-content: space-between;
-    }
-
-    .auth-footer {
-      margin-top: 16px;
-      padding-top: 12px;
-      border-top: 1px solid var(--border);
-      font-size: 11px;
-      color: var(--text-muted);
-
-      a {
-        color: var(--accent-cyan);
-
-        &:hover {
-          color: var(--accent-green);
-        }
-      }
     }
   `,
 })
@@ -155,11 +99,9 @@ export class LoginComponent {
         this.loading.set(false);
 
         if (err.status === 401) {
-          this.errorMessage.set(err.error?.message ?? 'invalid credentials');
-        } else if (err.status === 0) {
-          this.errorMessage.set('cannot connect to server — is the backend running?');
+          this.errorMessage.set(handleHttpError(err, 'invalid credentials'));
         } else {
-          this.errorMessage.set('login failed — please try again');
+          this.errorMessage.set(handleHttpError(err, 'login failed — please try again'));
         }
       },
     });

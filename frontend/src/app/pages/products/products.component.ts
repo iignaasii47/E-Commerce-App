@@ -59,17 +59,6 @@ import { TerminalInputComponent } from '../../components/shared/terminal-input/t
     </div>
   `,
   styles: `
-    .back-link {
-      display: inline-block;
-      margin-bottom: 4px;
-      font-size: 11px;
-      color: var(--text-muted);
-
-      &:hover {
-        color: var(--accent-cyan);
-      }
-    }
-
     .filters {
       margin-bottom: 16px;
       display: flex;

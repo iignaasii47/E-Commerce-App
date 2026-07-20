@@ -6,7 +6,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 @Schema(description = "Public user profile information")
+@Getter
+@Setter
+@NoArgsConstructor
 public class UserResponse {
 
     @Schema(description = "Unique user identifier", example = "1")
@@ -18,9 +25,6 @@ public class UserResponse {
     @Schema(description = "Account creation timestamp (UTC)", example = "2026-01-01T12:00:00")
     private LocalDateTime createdAt;
 
-    public UserResponse() {
-    }
-
     public UserResponse(Long id, String username, String email, LocalDateTime createdAt) {
         this.id = id;
         this.username = username;
@@ -30,38 +34,6 @@ public class UserResponse {
 
     public static UserResponse from(User user) {
         return new UserResponse(user.getId(), user.getUsername(), user.getEmail(), user.getCreatedAt());
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
     }
 
 }

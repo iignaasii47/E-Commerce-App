@@ -9,8 +9,15 @@ import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 @Entity
 @Table(name = "cart_items")
+@Getter
+@Setter
+@NoArgsConstructor
 public class CartItemEntity {
 
     @Id
@@ -32,9 +39,6 @@ public class CartItemEntity {
     @Column(nullable = false)
     private int quantity;
 
-    public CartItemEntity() {
-    }
-
     public CartItemEntity(Long id, Long userId, Long productId, String productName,
                           BigDecimal unitPrice, int quantity) {
         this.id = id;
@@ -42,54 +46,6 @@ public class CartItemEntity {
         this.productId = productId;
         this.productName = productName;
         this.unitPrice = unitPrice;
-        this.quantity = quantity;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
-
-    public Long getProductId() {
-        return productId;
-    }
-
-    public void setProductId(Long productId) {
-        this.productId = productId;
-    }
-
-    public String getProductName() {
-        return productName;
-    }
-
-    public void setProductName(String productName) {
-        this.productName = productName;
-    }
-
-    public BigDecimal getUnitPrice() {
-        return unitPrice;
-    }
-
-    public void setUnitPrice(BigDecimal unitPrice) {
-        this.unitPrice = unitPrice;
-    }
-
-    public int getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(int quantity) {
         this.quantity = quantity;
     }
 

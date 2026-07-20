@@ -7,7 +7,14 @@ import jakarta.validation.constraints.NotBlank;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 @Schema(description = "Chat message request with optional conversation history")
+@Getter
+@Setter
+@NoArgsConstructor
 public class ChatRequest {
 
     @NotBlank
@@ -17,20 +24,9 @@ public class ChatRequest {
     @Schema(description = "Previous conversation messages for context")
     private List<MessageDto> history = new ArrayList<>();
 
-    public ChatRequest() {
-    }
-
     public ChatRequest(String message, List<MessageDto> history) {
         this.message = message;
         this.history = history;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
     }
 
     public List<MessageDto> getHistory() {
@@ -38,10 +34,6 @@ public class ChatRequest {
             return new ArrayList<>();
         }
         return history;
-    }
-
-    public void setHistory(List<MessageDto> history) {
-        this.history = history;
     }
 
 }

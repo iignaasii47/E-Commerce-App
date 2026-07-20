@@ -14,8 +14,15 @@ import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 @Entity
 @Table(name = "refresh_tokens")
+@Getter
+@Setter
+@NoArgsConstructor
 public class RefreshTokenEntity {
 
     @Id
@@ -43,9 +50,6 @@ public class RefreshTokenEntity {
         createdAt = LocalDateTime.now(ZoneOffset.UTC);
     }
 
-    public RefreshTokenEntity() {
-    }
-
     public RefreshTokenEntity(Long id, String token, UserEntity user, LocalDateTime expiryDate,
                                boolean revoked, LocalDateTime createdAt) {
         this.id = id;
@@ -53,54 +57,6 @@ public class RefreshTokenEntity {
         this.user = user;
         this.expiryDate = expiryDate;
         this.revoked = revoked;
-        this.createdAt = createdAt;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
-    }
-
-    public UserEntity getUser() {
-        return user;
-    }
-
-    public void setUser(UserEntity user) {
-        this.user = user;
-    }
-
-    public LocalDateTime getExpiryDate() {
-        return expiryDate;
-    }
-
-    public void setExpiryDate(LocalDateTime expiryDate) {
-        this.expiryDate = expiryDate;
-    }
-
-    public boolean isRevoked() {
-        return revoked;
-    }
-
-    public void setRevoked(boolean revoked) {
-        this.revoked = revoked;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 

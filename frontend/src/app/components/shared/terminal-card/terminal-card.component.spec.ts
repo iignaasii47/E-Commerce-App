@@ -122,7 +122,7 @@ describe('TerminalCardComponent', () => {
 
   it('getStars should return array of correct length', async () => {
     const { component } = await setup();
-    const stars = component.getStars();
+    const stars = component.getStars(component.product().rating);
     expect(Array.isArray(stars)).toBe(true);
   });
 });

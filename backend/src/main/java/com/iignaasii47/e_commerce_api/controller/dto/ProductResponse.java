@@ -6,7 +6,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.math.BigDecimal;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 @Schema(description = "Product listing information")
+@Getter
+@Setter
+@NoArgsConstructor
 public class ProductResponse {
 
     @Schema(description = "Unique product identifier", example = "1")
@@ -26,10 +33,6 @@ public class ProductResponse {
     @Schema(description = "Average rating from 0.0 to 5.0", example = "4.7")
     private double rating;
 
-    public ProductResponse() {
-        // Required for JSON deserialization
-    }
-
     public static ProductResponse from(Product product) {
         ProductResponse response = new ProductResponse();
         response.id = product.getId();
@@ -41,70 +44,6 @@ public class ProductResponse {
         response.stock = product.getStock();
         response.rating = product.getRating();
         return response;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public BigDecimal getPrice() {
-        return price;
-    }
-
-    public void setPrice(BigDecimal price) {
-        this.price = price;
-    }
-
-    public String getCategory() {
-        return category;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
-    }
-
-    public String getImage() {
-        return image;
-    }
-
-    public void setImage(String image) {
-        this.image = image;
-    }
-
-    public int getStock() {
-        return stock;
-    }
-
-    public void setStock(int stock) {
-        this.stock = stock;
-    }
-
-    public double getRating() {
-        return rating;
-    }
-
-    public void setRating(double rating) {
-        this.rating = rating;
     }
 
 }

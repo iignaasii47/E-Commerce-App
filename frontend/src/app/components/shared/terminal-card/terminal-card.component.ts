@@ -1,6 +1,7 @@
 import { Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Product } from '../../../models';
+import { getStars } from '../../../utils';
 
 @Component({
   selector: 'app-terminal-card',
@@ -22,7 +23,7 @@ import { Product } from '../../../models';
       <div class="t-card__footer">
         <span class="t-card__price">\${{ product().price.toFixed(2) }}</span>
         <span class="t-card__rating">
-          @for (star of getStars(); track star) {
+          @for (star of getStars(product().rating); track star) {
             <span class="star filled">*</span>
           }@empty {
             <span class="star">-</span>
@@ -129,7 +130,5 @@ import { Product } from '../../../models';
 export class TerminalCardComponent {
   product = input.required<Product>();
 
-  getStars(): number[] {
-    return Array.from({ length: Math.floor(this.product().rating) }, (_, i) => i);
-  }
+  getStars = getStars;
 }

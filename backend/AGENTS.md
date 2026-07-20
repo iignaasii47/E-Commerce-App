@@ -206,6 +206,7 @@ When generating or modifying code:
 8. Never leave unused imports — these are recurrent SonarQube issues (java:S1128)
 9. When using AssertJ, chain multiple assertions on the same subject into a single chain (java:S5853). E.g., prefer `assertThat(x).isEqualTo(y).hasSameHashCodeAs(y)` over two separate `assertThat(x)` statements
 10. Extract domain objects from `assertThatThrownBy` lambdas so the lambda contains only a single invocation (java:S5778). E.g., extract the `new Checklist(...)` to a local variable before the lambda
+11. When running Maven commands, use `.\mvnw.cmd` (the project's Maven Wrapper) instead of `mvn`. This applies only when the host OS is Windows; on other platforms, use `./mvnw` instead.
 
 ---
 
