@@ -9,7 +9,7 @@ INSERT INTO products (name, description, price, category, image_url, stock, rati
 ('Portable SSD 2TB', 'External SSD with 2TB capacity, USB 3.2 Gen2, up to 1050MB/s read speeds, shock-resistant.', 179.99, 'storage', 'https://placehold.co/400x400/0a0e14/ff6bcb?text=SSD+2TB', 27, 4.7),
 ('Smart Power Strip', 'WiFi-enabled power strip with 4 AC outlets, 4 USB ports, energy monitoring, and voice assistant support.', 44.99, 'accessories', 'https://placehold.co/400x400/0a0e14/00ff41?text=Smart+Strip', 60, 4.2),
 ('Monitor Light Bar', 'LED monitor light bar with adjustable color temperature, touch dimmer, and space-saving asymmetric design.', 49.99, 'accessories', 'https://placehold.co/400x400/0a0e14/7dd3fc?text=Light+Bar', 55, 4.5)
-ON CONFLICT DO NOTHING;
+ON CONFLICT (name) DO NOTHING;
 
 INSERT INTO users (username, email, password, created_at) VALUES
 ('guest', 'guest@webshop.tui', '$2a$10$0jLyyJSrznBCvw2y2AtOUemeMGd2Sd9zR/tMLKi1YpaiqYRdzm1vq', NOW())
