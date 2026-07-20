@@ -206,4 +206,99 @@ describe('ProductDetailComponent', () => {
 
     expect(fixture.nativeElement.textContent).toContain('add-to-cart');
   });
+
+  describe('quantity selector integration', () => {
+    it('should pass qty=3 to addToCart after three increments', async () => {
+      const { component, fixture } = await setup();
+      const cartService = TestBed.inject(CartService);
+      const addSpy = vi.spyOn(cartService, 'addToCart');
+      const productService = TestBed.inject(ProductService);
+      const product = productService.getProductById(1)!;
+      component.product.set(product);
+      fixture.detectChanges();
+
+      component.incrementQty();
+      component.incrementQty();
+
+      component.addToCart(product);
+      expect(addSpy).toHaveBeenCalledWith(1, 3);
+    });
+
+    it('should pass cumulative qty=5 after five increments', async () => {
+      const { component, fixture } = await setup();
+      const cartService = TestBed.inject(CartService);
+      const addSpy = vi.spyOn(cartService, 'addToCart');
+      const productService = TestBed.inject(ProductService);
+      const product = productService.getProductById(1)!;
+      component.product.set(product);
+      fixture.detectChanges();
+
+      for (let i = 0; i < 5; i++) {
+        component.incrementQty();
+      }
+
+      component.addToCart(product);
+      expect(addSpy).toHaveBeenCalledWith(1, 6);
+    });
+
+    it('should handle increment/decrement mix and pass correct final qty', async () => {
+      const { component, fixture } = await setup();
+      const cartService = TestBed.inject(CartService);
+      const addSpy = vi.spyOn(cartService, 'addToCart');
+      const productService = TestBed.inject(ProductService);
+      const product = productService.getProductById(1)!;
+      component.product.set(product);
+      fixture.detectChanges();
+
+      component.incrementQty();
+      component.incrementQty();
+      component.incrementQty();
+      component.decrementQty();
+      component.incrementQty();
+
+      expect(component.quantity()).toBe(4);
+      component.addToCart(product);
+      expect(addSpy).toHaveBeenCalledWith(1, 4);
+    });
+
+    it('should pass correct qty via DOM add-to-cart button click', async () => {
+      const { fixture } = await setup();
+      const cartService = TestBed.inject(CartService);
+      const addSpy = vi.spyOn(cartService, 'addToCart');
+      const notifications = TestBed.inject(NotificationService);
+      vi.spyOn(notifications, 'success');
+      const productService = TestBed.inject(ProductService);
+      const product = productService.getProductById(1)!;
+      fixture.componentInstance.product.set(product);
+      fixture.detectChanges();
+
+      const plusBtn = fixture.nativeElement.querySelectorAll('.qty-btn')[1] as HTMLButtonElement;
+      plusBtn.click();
+      plusBtn.click();
+      fixture.detectChanges();
+
+      const addBtn = fixture.nativeElement.querySelector('.t-btn--primary') as HTMLButtonElement;
+      addBtn.click();
+
+      expect(addSpy).toHaveBeenCalledWith(1, 3);
+    });
+
+    it('should show updated subtotal in DOM as quantity changes', async () => {
+      const { fixture } = await setup();
+      const productService = TestBed.inject(ProductService);
+      const product = productService.getProductById(1)!;
+      fixture.componentInstance.product.set(product);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.textContent).toContain('$149.99');
+
+      fixture.componentInstance.incrementQty();
+      fixture.detectChanges();
+      expect(fixture.nativeElement.textContent).toContain('$299.98');
+
+      fixture.componentInstance.incrementQty();
+      fixture.detectChanges();
+      expect(fixture.nativeElement.textContent).toContain('$449.97');
+    });
+  });
 });

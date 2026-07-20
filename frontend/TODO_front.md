@@ -28,6 +28,10 @@
 - [ ] **#21** Product detail: no button disable during add-to-cart — double-click sends duplicate requests. (`product-detail.component.ts`)
 - [ ] **#22** `syncQuantity()` silently catches errors — quantity changes lost with no user feedback. (`cart.service.ts`)
 
+## DISCOVERED VIA TESTS
+
+- [x] **#D1** Cart allows decrementing below qty=1 — clicking `-` on item with qty=1 sends qty=0, which triggers `syncQuantity` to DELETE the item. No guard in `cart.component.ts` `updateQty()`. (`cart.component.ts:24`) — **FIXED**
+
 ## LOW — Code Quality & Polish
 
 - [ ] **#23** `Cart` and `CartItem` interfaces are dead code (never used). (`cart.model.ts`, `cart-item.model.ts`)

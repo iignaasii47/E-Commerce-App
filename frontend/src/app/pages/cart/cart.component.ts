@@ -21,7 +21,7 @@ import { TerminalButtonComponent } from '../../components/shared/terminal-button
                 <span class="cart-item__name">{{ item.productName }}</span>
               </div>
               <div class="cart-item__controls">
-                <button class="qty-btn" (click)="updateQty(item, item.quantity - 1)">-</button>
+                <button class="qty-btn" [disabled]="item.quantity <= 1" (click)="updateQty(item, item.quantity - 1)">-</button>
                 <span class="qty-val">{{ item.quantity }}</span>
                 <button class="qty-btn" (click)="updateQty(item, item.quantity + 1)">+</button>
               </div>
@@ -224,6 +224,7 @@ export class CartComponent {
   private readonly notifications = inject(NotificationService);
 
   updateQty(item: { id: number; productId: number; quantity: number; productName: string }, qty: number): void {
+    if (qty < 1) return;
     this.cart.updateQuantity(item.id, item.productId, qty);
   }
 

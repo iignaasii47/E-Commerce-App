@@ -144,4 +144,105 @@ describe('CartComponent', () => {
     fixture.componentInstance.checkout();
     expect(infoSpy).toHaveBeenCalledWith('checkout flow coming soon...');
   });
+
+  describe('quantity interactions', () => {
+    it('should display correct qty in DOM after clicking + three times', async () => {
+      const { fixture } = await setup();
+      const cart = TestBed.inject(CartService);
+      cart.items.set([apiItem({ id: 1, productId: 1, quantity: 1 })]);
+      fixture.detectChanges();
+
+      const plusBtn = fixture.nativeElement.querySelectorAll('.qty-btn')[1] as HTMLButtonElement;
+      plusBtn.click();
+      fixture.detectChanges();
+      plusBtn.click();
+      fixture.detectChanges();
+      plusBtn.click();
+      fixture.detectChanges();
+
+      const qtyEl = fixture.nativeElement.querySelector('.qty-val');
+      expect(qtyEl.textContent).toBe('4');
+    });
+
+    it('should keep qty=1 in DOM after clicking - on item with qty=1', async () => {
+      const { fixture } = await setup();
+      const cart = TestBed.inject(CartService);
+      cart.items.set([apiItem({ id: 1, productId: 1, quantity: 1 })]);
+      fixture.detectChanges();
+
+      const minusBtn = fixture.nativeElement.querySelectorAll('.qty-btn')[0] as HTMLButtonElement;
+      expect(minusBtn.disabled).toBe(true);
+      minusBtn.click();
+      fixture.detectChanges();
+
+      const qtyEl = fixture.nativeElement.querySelector('.qty-val');
+      expect(qtyEl.textContent).toBe('1');
+    });
+
+    it('should return to original qty after + then - on same item', async () => {
+      const { fixture } = await setup();
+      const cart = TestBed.inject(CartService);
+      cart.items.set([apiItem({ id: 1, productId: 1, quantity: 3 })]);
+      fixture.detectChanges();
+
+      const minusBtn = fixture.nativeElement.querySelectorAll('.qty-btn')[0] as HTMLButtonElement;
+      const plusBtn = fixture.nativeElement.querySelectorAll('.qty-btn')[1] as HTMLButtonElement;
+      plusBtn.click();
+      fixture.detectChanges();
+      minusBtn.click();
+      fixture.detectChanges();
+
+      const qtyEl = fixture.nativeElement.querySelector('.qty-val');
+      expect(qtyEl.textContent).toBe('3');
+    });
+
+    it('+ on item A should not affect item B quantity in DOM', async () => {
+      const { fixture } = await setup();
+      const cart = TestBed.inject(CartService);
+      cart.items.set([
+        apiItem({ id: 1, productId: 1, productName: 'A', quantity: 2 }),
+        apiItem({ id: 2, productId: 2, productName: 'B', quantity: 5 }),
+      ]);
+      fixture.detectChanges();
+
+      const cartItems = fixture.nativeElement.querySelectorAll('.cart-item');
+      const plusBtnA = cartItems[0].querySelectorAll('.qty-btn')[1] as HTMLButtonElement;
+      plusBtnA.click();
+      fixture.detectChanges();
+
+      const qtyVals = fixture.nativeElement.querySelectorAll('.qty-val');
+      expect(qtyVals[0].textContent).toBe('3');
+      expect(qtyVals[1].textContent).toBe('5');
+    });
+
+    it('should update subtotal in DOM after quantity change', async () => {
+      const { fixture } = await setup();
+      const cart = TestBed.inject(CartService);
+      cart.items.set([apiItem({ id: 1, productId: 1, unitPrice: 20, quantity: 1, subtotal: 20 })]);
+      fixture.detectChanges();
+
+      const plusBtn = fixture.nativeElement.querySelectorAll('.qty-btn')[1] as HTMLButtonElement;
+      plusBtn.click();
+      fixture.detectChanges();
+      plusBtn.click();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.textContent).toContain('$60.00');
+    });
+
+    it('itemCount in header should reflect quantity changes', async () => {
+      const { fixture } = await setup();
+      const cart = TestBed.inject(CartService);
+      cart.items.set([apiItem({ id: 1, productId: 1, quantity: 2 })]);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.textContent).toContain('2 items in cart');
+
+      const plusBtn = fixture.nativeElement.querySelectorAll('.qty-btn')[1] as HTMLButtonElement;
+      plusBtn.click();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.textContent).toContain('3 items in cart');
+    });
+  });
 });
