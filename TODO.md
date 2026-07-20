@@ -31,7 +31,7 @@ This repository is stronger than a basic CRUD portfolio app because it demonstra
 |---:|---|---|---|---|
 | 1 | (DONE) Rotate leaked Sonar token, remove tracked `.env`, and add secret-scanning guidance | Very High | Medium | 1-3h plus history cleanup |
 | 2 | (DONE) Add GitHub Actions CI for backend tests, frontend tests, build, and coverage upload | Very High | Medium | 3-6h |
-| 3 | Add Dockerfile and `docker-compose.yml` for API, PostgreSQL, and frontend | Very High | Medium | 4-8h |
+| 3 | (DONE) Add Dockerfile and `docker-compose.yml` for API, PostgreSQL, and frontend | Very High | Medium | 4-8h |
 | 4 | (DONE) Replace `ddl-auto=update` and `data.sql` truncation with Flyway migrations and seed scripts | Very High | Medium | 4-8h |
 | 5 | Move DB credentials and JWT secret to environment variables with prod/dev profiles | Very High | Low | 1-3h |
 | 6 | (DONE) Implement Spring Security `SecurityFilterChain` and JWT auth filter | Very High | Medium | 5-10h |
