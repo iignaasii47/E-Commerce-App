@@ -28,6 +28,7 @@
 	</scm>
 	<properties>
 		<java.version>26</java.version>
+		<maven.compiler.proc>full</maven.compiler.proc>
 		<sonar.projectKey>ecommerce-api</sonar.projectKey>
 		<tomcat.version>11.0.24</tomcat.version>
 		<postgresql.version>42.7.12</postgresql.version>
