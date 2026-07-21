@@ -1,8 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs';
 import { ProductService, CartService, NotificationService } from '../../../services';
 import { TerminalButtonComponent } from '../../../components/shared/terminal-button/terminal-button.component';
 import { getStars } from '../../../utils';
@@ -251,11 +249,6 @@ export class ProductDetailComponent {
   private readonly notifications = inject(NotificationService);
   private readonly route = inject(ActivatedRoute);
 
-  private readonly productId = toSignal(
-    this.route.paramMap.pipe(map((params) => Number(params.get('id')))),
-    { initialValue: 0 },
-  );
-
   product = signal<Product | undefined>(undefined);
 
   loading = signal(true);
@@ -263,24 +256,29 @@ export class ProductDetailComponent {
   quantity = signal(1);
 
   constructor() {
-    const id = this.productId();
-    if (id) {
-      this.productService.getProduct(id).subscribe({
-        next: (product) => {
-          this.product.set(product);
-          this.loading.set(false);
-        },
-        error: (err: HttpErrorResponse) => {
-          this.loading.set(false);
-          if (err.status === 404) {
-            this.router.navigate(['/not-found']);
-          } else {
-            this.notifications.error('failed to load product');
-            this.router.navigate(['/products']);
-          }
-        },
-      });
-    }
+    this.route.paramMap.subscribe((params) => {
+      const id = Number(params.get('id'));
+      if (id) {
+        this.loading.set(true);
+        this.product.set(undefined);
+        this.quantity.set(1);
+        this.productService.getProduct(id).subscribe({
+          next: (product) => {
+            this.product.set(product);
+            this.loading.set(false);
+          },
+          error: (err: HttpErrorResponse) => {
+            this.loading.set(false);
+            if (err.status === 404) {
+              this.router.navigate(['/not-found']);
+            } else {
+              this.notifications.error('failed to load product');
+              this.router.navigate(['/products']);
+            }
+          },
+        });
+      }
+    });
   }
 
   getStars = getStars;
