@@ -24,24 +24,24 @@ import { TerminalButtonComponent } from '../../components/shared/terminal-button
                   placeholder="123 Terminal St"
                   [value]="address()"
                   (valueChange)="address.set($event)" />
-                @if (errors().address) {
-                  <span class="field-error">{{ errors().address }}</span>
+                @if (errors()['address']) {
+                  <span class="field-error">{{ errors()['address'] }}</span>
                 }
                 <app-terminal-input
                   label="city"
                   placeholder="San Francisco"
                   [value]="city()"
                   (valueChange)="city.set($event)" />
-                @if (errors().city) {
-                  <span class="field-error">{{ errors().city }}</span>
+                @if (errors()['city']) {
+                  <span class="field-error">{{ errors()['city'] }}</span>
                 }
                 <app-terminal-input
                   label="zip"
                   placeholder="94102"
                   [value]="zip()"
                   (valueChange)="zip.set($event)" />
-                @if (errors().zip) {
-                  <span class="field-error">{{ errors().zip }}</span>
+                @if (errors()['zip']) {
+                  <span class="field-error">{{ errors()['zip'] }}</span>
                 }
               </div>
             </div>
