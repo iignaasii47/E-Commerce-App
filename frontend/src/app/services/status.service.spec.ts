@@ -76,9 +76,9 @@ describe('StatusService', () => {
       api: 'UP', database: 'UP', timestamp: '',
     });
     expect(service.techStack.length).toBeGreaterThan(0);
-    expect(service.techStack.some((t) => t.name === 'Angular')).toBe(true);
-    expect(service.techStack.some((t) => t.name === 'Spring Boot')).toBe(true);
-    expect(service.techStack.some((t) => t.name === 'PostgreSQL')).toBe(true);
+    expect(service.techStack.some((t) => t.framework.includes('Angular'))).toBe(true);
+    expect(service.techStack.some((t) => t.framework.includes('Spring Boot'))).toBe(true);
+    expect(service.techStack.some((t) => t.framework.includes('PostgreSQL'))).toBe(true);
   });
 
   it('checkStatus should make a new GET request to /api/status', () => {
