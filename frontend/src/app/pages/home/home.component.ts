@@ -34,10 +34,10 @@ import { StatusService } from '../../services/status.service';
       <div class="system-info">
         <p class="section-label">// tech stack</p>
         <div class="info-grid">
-          @for (item of status.techStack; track item.name) {
+          @for (item of status.techStack; track item.usage) {
             <div class="info-row">
-              <span class="info-key">{{ item.name }}:</span>
-              <span class="info-val">{{ item.version ? 'v' + item.version + ' — ' : '' }}{{ item.description }}</span>
+              <span class="info-key">{{ item.usage }}:</span>
+              <span class="info-val">{{ item.framework }}</span>
             </div>
           }
         </div>
@@ -146,7 +146,7 @@ import { StatusService } from '../../services/status.service';
 
     .info-key {
       color: var(--text-muted);
-      min-width: 100px;
+      min-width: 160px;
     }
 
     .info-val {

@@ -3,9 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 
 export interface TechStackItem {
-  name: string;
-  version?: string;
-  description: string;
+  usage: string;
+  framework: string;
 }
 
 interface StatusResponse {
@@ -22,12 +21,23 @@ export class StatusService {
   readonly dbStatus = signal<'online' | 'offline' | 'unknown'>('unknown');
 
   readonly techStack: TechStackItem[] = [
-    { name: 'Angular', version: '22', description: 'frontend framework' },
-    { name: 'TypeScript', version: '6', description: 'language' },
-    { name: 'Spring Boot', version: '4.1', description: 'backend framework' },
-    { name: 'Java', version: '26', description: 'language' },
-    { name: 'PostgreSQL', description: 'database' },
-    { name: 'JWT', version: '0.12', description: 'authentication' },
+    { usage: 'frontend framework', framework: 'Angular 22 / Typescript 6' },
+    { usage: 'styling', framework: 'SCSS' },
+    { usage: 'state management', framework: 'Angular Signals' },
+    { usage: 'reactive programming', framework: 'RxJS 7.8' },
+    { usage: 'frontend testing', framework: 'Vitest 4.0' },
+    { usage: 'backend framework', framework: 'Spring Boot 4.1/Java 26' },
+    { usage: 'ORM', framework: 'Spring Data JPA / Hibernate' },
+    { usage: 'database', framework: 'PostgreSQL 16' },
+    { usage: 'DB migrations', framework: 'Flyway' },
+    { usage: 'authentication', framework: 'Spring Security + JWT 0.12' },
+    { usage: 'API docs', framework: 'SpringDoc OpenAPI 2.8' },
+    { usage: 'AI integration', framework: 'OpenRouter API' },
+    { usage: 'build tool', framework: 'Maven 3.9' },
+    { usage: 'code generation', framework: 'Lombok' },
+    { usage: 'containerization', framework: 'Docker' },
+    { usage: 'orchestration', framework: 'Docker Compose' },
+    { usage: 'CI/CD', framework: 'GitHub Actions' },
   ];
 
   constructor() {
