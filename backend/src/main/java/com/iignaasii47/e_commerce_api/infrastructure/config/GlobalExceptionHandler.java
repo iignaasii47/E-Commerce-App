@@ -9,6 +9,7 @@ import com.iignaasii47.e_commerce_api.domain.exception.InvalidCredentialsExcepti
 import com.iignaasii47.e_commerce_api.domain.exception.OrderNotFoundException;
 import com.iignaasii47.e_commerce_api.domain.exception.ProductNotFoundException;
 import com.iignaasii47.e_commerce_api.domain.exception.RefreshTokenException;
+import com.iignaasii47.e_commerce_api.domain.exception.WeakPasswordException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleDuplicateUser(DuplicateUserException ex) {
         log.warn("Duplicate user: {}", ex.getMessage());
         return errorResponse(HttpStatus.CONFLICT, "Conflict", ex.getMessage());
+    }
+
+    @ExceptionHandler(WeakPasswordException.class)
+    public ResponseEntity<Map<String, Object>> handleWeakPassword(WeakPasswordException ex) {
+        log.warn("Weak password: {}", ex.getMessage());
+        return errorResponse(HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage());
     }
 
     @ExceptionHandler(InvalidCredentialsException.class)

@@ -3,6 +3,7 @@ package com.iignaasii47.e_commerce_api.controller;
 import com.iignaasii47.e_commerce_api.application.port.in.UserUseCase;
 import com.iignaasii47.e_commerce_api.domain.exception.DuplicateUserException;
 import com.iignaasii47.e_commerce_api.domain.exception.InvalidCredentialsException;
+import com.iignaasii47.e_commerce_api.domain.exception.WeakPasswordException;
 import com.iignaasii47.e_commerce_api.domain.model.Authentication;
 import com.iignaasii47.e_commerce_api.domain.model.User;
 import com.iignaasii47.e_commerce_api.domain.port.out.TokenService;
@@ -104,6 +105,26 @@ class UserControllerTest {
                         .content(requestBody))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value("Username 'john' is already taken"));
+    }
+
+    @Test
+    void shouldReturn400WhenWeakPassword() throws Exception {
+        when(userUseCase.register(any(User.class)))
+                .thenThrow(new WeakPasswordException("Password must not be purely numeric"));
+
+        String requestBody = """
+                {
+                    "username": "john",
+                    "email": "john@example.com",
+                    "password": "12345678"
+                }
+                """;
+
+        mockMvc.perform(post("/api/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Password must not be purely numeric"));
     }
 
     @Test

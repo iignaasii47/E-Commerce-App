@@ -2,6 +2,7 @@ package com.iignaasii47.e_commerce_api.application.service;
 
 import com.iignaasii47.e_commerce_api.domain.exception.InvalidCredentialsException;
 import com.iignaasii47.e_commerce_api.domain.exception.RefreshTokenException;
+import com.iignaasii47.e_commerce_api.domain.exception.WeakPasswordException;
 import com.iignaasii47.e_commerce_api.domain.model.Authentication;
 import com.iignaasii47.e_commerce_api.domain.model.RefreshToken;
 import com.iignaasii47.e_commerce_api.domain.model.User;
@@ -25,6 +26,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -77,7 +79,8 @@ class UserUseCaseServiceTest {
         assertThat(userCaptor.getValue().getPassword()).isEqualTo("encryptedPassword");
 
         verify(passwordEncryption).encrypt("rawPassword");
-        verify(userRegistrationService).validate(any(User.class));
+        verify(userRegistrationService).validate(userCaptor.capture());
+        assertThat(userCaptor.getValue().getPassword()).isEqualTo("rawPassword");
     }
 
     @Test
@@ -191,6 +194,29 @@ class UserUseCaseServiceTest {
         userUseCaseService.logout("refresh-value");
 
         verify(refreshTokenRepository).save(any(RefreshToken.class));
+    }
+
+    @Test
+    void shouldRejectPurelyAlphabeticPassword() {
+        User input = new User(null, "john", "john@example.com", "adminadmin", null);
+        UserRegistrationService realService = new UserRegistrationService(userRepository, 8, true);
+        var service = new UserUseCaseService(userRepository, passwordEncryption,
+                realService, tokenService, refreshTokenRepository, REFRESH_EXPIRATION_MS);
+
+        assertThatThrownBy(() -> service.register(input))
+                .isInstanceOf(WeakPasswordException.class)
+                .hasMessage("Password must not be purely alphabetic");
+    }
+
+    @Test
+    void shouldPropagateWeakPasswordException() {
+        User input = new User(null, "john", "john@example.com", "12345678", null);
+        WeakPasswordException exception = new WeakPasswordException("Password must not be purely numeric");
+        doThrow(exception).when(userRegistrationService).validate(input);
+
+        assertThatThrownBy(() -> userUseCaseService.register(input))
+                .isInstanceOf(WeakPasswordException.class)
+                .hasMessage("Password must not be purely numeric");
     }
 
 }

@@ -5,6 +5,7 @@ import com.iignaasii47.e_commerce_api.domain.exception.CartItemNotFoundException
 import com.iignaasii47.e_commerce_api.domain.exception.DuplicateUserException;
 import com.iignaasii47.e_commerce_api.domain.exception.InvalidCredentialsException;
 import com.iignaasii47.e_commerce_api.domain.exception.ProductNotFoundException;
+import com.iignaasii47.e_commerce_api.domain.exception.WeakPasswordException;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -29,6 +30,20 @@ class GlobalExceptionHandlerTest {
                 .containsEntry("status", 409)
                 .containsEntry("error", "Conflict")
                 .containsEntry("message", "user exists")
+                .containsKey("timestamp");
+    }
+
+    @Test
+    void shouldReturn400ForWeakPassword() {
+        WeakPasswordException exception = new WeakPasswordException("Password must not be purely numeric");
+
+        ResponseEntity<Map<String, Object>> response = handler.handleWeakPassword(exception);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).isNotNull()
+                .containsEntry("status", 400)
+                .containsEntry("error", "Bad Request")
+                .containsEntry("message", "Password must not be purely numeric")
                 .containsKey("timestamp");
     }
 

@@ -46,9 +46,9 @@ public class UserUseCaseService implements UserUseCase {
     @Override
     @Transactional
     public User register(User user) {
+        userRegistrationService.validate(user);
         String encryptedPassword = passwordEncryption.encrypt(user.getPassword());
         User userToRegister = new User(null, user.getUsername(), user.getEmail(), encryptedPassword, null);
-        userRegistrationService.validate(userToRegister);
         return userRepository.save(userToRegister);
     }
 
