@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class CartRepositoryImpl implements CartRepository {
@@ -25,6 +26,12 @@ public class CartRepositoryImpl implements CartRepository {
         return jpaCartItemRepository.findByUserId(userId).stream()
                 .map(CartItemMapper::toDomain)
                 .toList();
+    }
+
+    @Override
+    public Optional<CartItem> findById(Long cartItemId) {
+        return jpaCartItemRepository.findById(cartItemId)
+                .map(CartItemMapper::toDomain);
     }
 
     @Override

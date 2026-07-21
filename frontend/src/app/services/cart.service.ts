@@ -1,12 +1,14 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { ApiCartItem } from '../models';
 import { environment } from '../../environments/environment';
+import { NotificationService } from './notification.service';
 
 @Injectable({ providedIn: 'root' })
 export class CartService {
   private readonly http = inject(HttpClient);
+  private readonly notificationService = inject(NotificationService);
 
   private readonly apiUrl = environment.apiUrl + '/api/cart';
 
@@ -46,6 +48,13 @@ export class CartService {
             return [...items, item];
           });
         },
+        error: (err: HttpErrorResponse) => {
+          if (err.status === 404) {
+            this.notificationService.error('product not found');
+          } else {
+            this.notificationService.error('failed to add item to cart');
+          }
+        },
       });
   }
 
@@ -53,6 +62,14 @@ export class CartService {
     this.http.delete(`${this.apiUrl}/${cartItemId}`).subscribe({
       next: () => {
         this.items.update((items) => items.filter((i) => i.id !== cartItemId));
+      },
+      error: (err: HttpErrorResponse) => {
+        if (err.status === 404) {
+          this.notificationService.error('cart item not found');
+          this.loadCart();
+        } else {
+          this.notificationService.error('failed to remove item');
+        }
       },
     });
   }
@@ -98,7 +115,7 @@ export class CartService {
         this.items.update((items) => [...items.filter((i) => i.id !== cartItemId), newItem]);
       }
     } catch {
-      // fire-and-forget: silently ignore, next loadCart() reconciles state
+      this.loadCart();
     }
   }
 }

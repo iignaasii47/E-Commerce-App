@@ -3,6 +3,7 @@ package com.iignaasii47.e_commerce_api.controller;
 import com.iignaasii47.e_commerce_api.application.port.in.ProductImageUseCase;
 import com.iignaasii47.e_commerce_api.application.port.in.ProductUseCase;
 import com.iignaasii47.e_commerce_api.controller.dto.ProductResponse;
+import com.iignaasii47.e_commerce_api.domain.exception.ProductNotFoundException;
 import com.iignaasii47.e_commerce_api.domain.model.ImageData;
 import com.iignaasii47.e_commerce_api.domain.model.Product;
 
@@ -64,13 +65,13 @@ public class ProductController {
     @Operation(summary = "Get product by ID",
             description = "Returns detailed information about a single product.")
     @ApiResponse(responseCode = "200", description = "Product found")
-    @ApiResponse(responseCode = "204", description = "Product not found", content = @Content)
+    @ApiResponse(responseCode = "404", description = "Product not found", content = @Content)
     public ProductResponse getProductById(
             @Parameter(description = "Product identifier", example = "1")
             @PathVariable Long id) {
         Product product = productUseCase.getProductById(id)
-                .orElse(null);
-        return product != null ? ProductResponse.from(product) : null;
+                .orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + id));
+        return ProductResponse.from(product);
     }
 
     @GetMapping("/categories")

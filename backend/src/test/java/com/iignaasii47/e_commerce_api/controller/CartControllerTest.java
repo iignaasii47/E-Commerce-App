@@ -1,6 +1,7 @@
 package com.iignaasii47.e_commerce_api.controller;
 
 import com.iignaasii47.e_commerce_api.application.port.in.CartUseCase;
+import com.iignaasii47.e_commerce_api.domain.exception.CartItemNotFoundException;
 import com.iignaasii47.e_commerce_api.domain.model.CartItem;
 import com.iignaasii47.e_commerce_api.domain.port.out.TokenService;
 
@@ -15,6 +16,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -98,5 +100,15 @@ class CartControllerTest {
                         .with(authentication(AUTH)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("removed"));
+    }
+
+    @Test
+    void shouldReturn404WhenCartItemNotFound() throws Exception {
+        doThrow(new CartItemNotFoundException("Cart item not found with id: 99"))
+                .when(cartUseCase).removeFromCart(99L);
+
+        mockMvc.perform(delete("/api/cart/99")
+                        .with(authentication(AUTH)))
+                .andExpect(status().isNotFound());
     }
 }

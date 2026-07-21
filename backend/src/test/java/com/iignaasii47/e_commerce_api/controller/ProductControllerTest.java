@@ -65,6 +65,14 @@ class ProductControllerTest {
     }
 
     @Test
+    void shouldReturn404WhenProductNotFound() throws Exception {
+        when(productUseCase.getProductById(999L)).thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/api/products/999"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void shouldFilterByCategory() throws Exception {
         Product product = TestFixtures.aKeyboardProduct();
         when(productUseCase.getProductsByCategory("peripherals")).thenReturn(List.of(product));

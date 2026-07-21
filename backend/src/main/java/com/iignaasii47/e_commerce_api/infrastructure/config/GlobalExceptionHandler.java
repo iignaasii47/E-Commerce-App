@@ -1,8 +1,10 @@
 package com.iignaasii47.e_commerce_api.infrastructure.config;
 
 import com.iignaasii47.e_commerce_api.domain.exception.AiServiceException;
+import com.iignaasii47.e_commerce_api.domain.exception.CartItemNotFoundException;
 import com.iignaasii47.e_commerce_api.domain.exception.DuplicateUserException;
 import com.iignaasii47.e_commerce_api.domain.exception.InvalidCredentialsException;
+import com.iignaasii47.e_commerce_api.domain.exception.ProductNotFoundException;
 import com.iignaasii47.e_commerce_api.domain.exception.RefreshTokenException;
 
 import org.slf4j.Logger;
@@ -49,6 +51,18 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleAiService(AiServiceException ex) {
         log.error("AI service error: {}", ex.getMessage());
         return errorResponse(HttpStatus.BAD_GATEWAY, "Bad Gateway", ex.getMessage());
+    }
+
+    @ExceptionHandler(ProductNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleProductNotFound(ProductNotFoundException ex) {
+        log.warn("Product not found: {}", ex.getMessage());
+        return errorResponse(HttpStatus.NOT_FOUND, "Not Found", ex.getMessage());
+    }
+
+    @ExceptionHandler(CartItemNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleCartItemNotFound(CartItemNotFoundException ex) {
+        log.warn("Cart item not found: {}", ex.getMessage());
+        return errorResponse(HttpStatus.NOT_FOUND, "Not Found", ex.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

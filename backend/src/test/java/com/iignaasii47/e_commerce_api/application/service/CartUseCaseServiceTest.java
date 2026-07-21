@@ -1,7 +1,8 @@
 package com.iignaasii47.e_commerce_api.application.service;
 
 import com.iignaasii47.e_commerce_api.application.port.in.ProductUseCase;
-import com.iignaasii47.e_commerce_api.domain.exception.AiServiceException;
+import com.iignaasii47.e_commerce_api.domain.exception.CartItemNotFoundException;
+import com.iignaasii47.e_commerce_api.domain.exception.ProductNotFoundException;
 import com.iignaasii47.e_commerce_api.domain.model.CartItem;
 import com.iignaasii47.e_commerce_api.domain.model.Product;
 import com.iignaasii47.e_commerce_api.domain.port.out.CartRepository;
@@ -100,21 +101,44 @@ class CartUseCaseServiceTest {
     }
 
     @Test
-    void shouldThrowWhenProductNotFound() {
+    void shouldThrowProductNotFoundExceptionWhenProductNotFound() {
         when(securityContextProvider.getCurrentUserId()).thenReturn(USER_ID);
         when(productUseCase.getProductById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> cartUseCaseService.addToCart(99L, 1))
-                .isInstanceOf(AiServiceException.class)
-                .hasMessageContaining("Product with ID 99 not found");
+                .isInstanceOf(ProductNotFoundException.class)
+                .hasMessageContaining("Product not found with id: 99");
     }
 
     @Test
     void shouldRemoveItemFromCart() {
+        CartItem item = new CartItem(5L, USER_ID, 10L, "Keyboard", new BigDecimal("149.99"), 1);
         when(securityContextProvider.getCurrentUserId()).thenReturn(USER_ID);
+        when(cartRepository.findById(5L)).thenReturn(Optional.of(item));
 
         cartUseCaseService.removeFromCart(5L);
 
         verify(cartRepository).removeItem(USER_ID, 5L);
+    }
+
+    @Test
+    void shouldThrowCartItemNotFoundExceptionWhenCartItemNotFound() {
+        when(securityContextProvider.getCurrentUserId()).thenReturn(USER_ID);
+        when(cartRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> cartUseCaseService.removeFromCart(99L))
+                .isInstanceOf(CartItemNotFoundException.class)
+                .hasMessageContaining("Cart item not found with id: 99");
+    }
+
+    @Test
+    void shouldThrowCartItemNotFoundExceptionWhenCartItemNotOwnedByUser() {
+        CartItem item = new CartItem(5L, 999L, 10L, "Keyboard", new BigDecimal("149.99"), 1);
+        when(securityContextProvider.getCurrentUserId()).thenReturn(USER_ID);
+        when(cartRepository.findById(5L)).thenReturn(Optional.of(item));
+
+        assertThatThrownBy(() -> cartUseCaseService.removeFromCart(5L))
+                .isInstanceOf(CartItemNotFoundException.class)
+                .hasMessageContaining("Cart item not found with id: 5");
     }
 }

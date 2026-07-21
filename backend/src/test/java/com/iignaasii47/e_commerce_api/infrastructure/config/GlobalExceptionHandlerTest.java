@@ -1,8 +1,10 @@
 package com.iignaasii47.e_commerce_api.infrastructure.config;
 
 import com.iignaasii47.e_commerce_api.domain.exception.AiServiceException;
+import com.iignaasii47.e_commerce_api.domain.exception.CartItemNotFoundException;
 import com.iignaasii47.e_commerce_api.domain.exception.DuplicateUserException;
 import com.iignaasii47.e_commerce_api.domain.exception.InvalidCredentialsException;
+import com.iignaasii47.e_commerce_api.domain.exception.ProductNotFoundException;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -55,6 +57,34 @@ class GlobalExceptionHandlerTest {
                 .containsEntry("status", 502)
                 .containsEntry("error", "Bad Gateway")
                 .containsEntry("message", "AI service error")
+                .containsKey("timestamp");
+    }
+
+    @Test
+    void shouldReturn404ForProductNotFound() {
+        ProductNotFoundException exception = new ProductNotFoundException("Product not found with id: 99");
+
+        ResponseEntity<Map<String, Object>> response = handler.handleProductNotFound(exception);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(response.getBody()).isNotNull()
+                .containsEntry("status", 404)
+                .containsEntry("error", "Not Found")
+                .containsEntry("message", "Product not found with id: 99")
+                .containsKey("timestamp");
+    }
+
+    @Test
+    void shouldReturn404ForCartItemNotFound() {
+        CartItemNotFoundException exception = new CartItemNotFoundException("Cart item not found with id: 5");
+
+        ResponseEntity<Map<String, Object>> response = handler.handleCartItemNotFound(exception);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(response.getBody()).isNotNull()
+                .containsEntry("status", 404)
+                .containsEntry("error", "Not Found")
+                .containsEntry("message", "Cart item not found with id: 5")
                 .containsKey("timestamp");
     }
 

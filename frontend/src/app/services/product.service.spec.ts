@@ -146,4 +146,28 @@ describe('ProductService', () => {
 
     expect(service.allProducts().length).toBe(0);
   });
+
+  it('getProduct should fetch single product from API', () => {
+    let result: Product | undefined;
+    service.getProduct(1).subscribe((p) => (result = p));
+
+    const req = httpMock.expectOne(environment.apiUrl + '/api/products/1');
+    expect(req.request.method).toBe('GET');
+    req.flush(MOCK_PRODUCTS[0]);
+
+    expect(result).toBeDefined();
+    expect(result!.name).toBe('Mechanical Keyboard MK-750');
+  });
+
+  it('getProduct should propagate HTTP errors', () => {
+    let errorStatus: number | undefined;
+    service.getProduct(999).subscribe({
+      error: (err) => (errorStatus = err.status),
+    });
+
+    const req = httpMock.expectOne(environment.apiUrl + '/api/products/999');
+    req.flush('', { status: 404, statusText: 'Not Found' });
+
+    expect(errorStatus).toBe(404);
+  });
 });
