@@ -32,7 +32,7 @@ public class UserRegistrationService {
             throw new WeakPasswordException("Password must be at least " + passwordMinLength + " characters long");
         }
         if (passwordRequireMixed) {
-            if (password.matches("[0-9]+")) {
+            if (password.matches("\\d+")) {
                 throw new WeakPasswordException("Password must not be purely numeric");
             }
             if (password.matches("[a-zA-Z]+")) {

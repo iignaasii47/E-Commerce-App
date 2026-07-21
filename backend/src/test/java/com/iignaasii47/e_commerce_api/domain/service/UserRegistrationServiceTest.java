@@ -90,9 +90,9 @@ class UserRegistrationServiceTest {
 
     @Test
     void shouldPassWhenPasswordIsValidMixedCharacters() {
-        User user = new User(null, "john", "john@example.com", "Pass1234!", null);
-        when(userRepository.existsByUsername("john")).thenReturn(false);
-        when(userRepository.existsByEmail("john@example.com")).thenReturn(false);
+        User user = new User(null, "alice", "alice@example.com", "Str0ngP@ss!", null);
+        when(userRepository.existsByUsername("alice")).thenReturn(false);
+        when(userRepository.existsByEmail("alice@example.com")).thenReturn(false);
 
         assertThatCode(() -> userRegistrationService.validate(user)).doesNotThrowAnyException();
     }
