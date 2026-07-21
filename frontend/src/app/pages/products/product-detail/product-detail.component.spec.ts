@@ -33,6 +33,7 @@ describe('ProductDetailComponent', () => {
     const fixture = TestBed.createComponent(ProductDetailComponent);
     httpMock.expectOne(environment.apiUrl + '/api/products').flush(MOCK_PRODUCTS);
     const component = fixture.componentInstance;
+    component.loading.set(false);
     fixture.detectChanges();
     return { fixture, component, httpMock };
   }
@@ -42,11 +43,13 @@ describe('ProductDetailComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should show product not found for invalid id', async () => {
-    const { fixture } = await setup();
-    const notFound = fixture.nativeElement.querySelector('.not-found') as HTMLElement;
-    expect(notFound).toBeTruthy();
-    expect(notFound.textContent).toContain('product not found');
+  it('should show loading state initially', async () => {
+    const { fixture, component } = await setup();
+    component.loading.set(true);
+    fixture.detectChanges();
+    const loading = fixture.nativeElement.querySelector('.loading') as HTMLElement;
+    expect(loading).toBeTruthy();
+    expect(loading.textContent).toContain('loading product');
   });
 
   it('should display product details when product is found', async () => {

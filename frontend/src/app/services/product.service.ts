@@ -1,5 +1,6 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { Product } from '../models';
 import { environment } from '../../environments/environment';
 
@@ -24,6 +25,10 @@ export class ProductService {
       next: (products) => this.products.set(products),
       error: () => this.products.set([]),
     });
+  }
+
+  getProduct(id: number): Observable<Product> {
+    return this.http.get<Product>(`${environment.apiUrl}/api/products/${id}`);
   }
 
   getProductById(id: number): Product | undefined {

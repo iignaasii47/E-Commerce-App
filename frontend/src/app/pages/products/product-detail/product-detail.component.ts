@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 import { ProductService, CartService, NotificationService } from '../../../services';
@@ -13,7 +14,11 @@ import { Product } from '../../../models';
   imports: [RouterLink, TerminalButtonComponent],
   template: `
     <div class="page-container">
-      @if (product(); as p) {
+      @if (loading()) {
+        <div class="loading">
+          <p>$ loading product...</p>
+        </div>
+      } @else if (product(); as p) {
         <a routerLink="/products" class="back-link">&lt; cd ..</a>
 
         <div class="detail-layout">
@@ -73,7 +78,7 @@ import { Product } from '../../../models';
         </div>
       } @else {
         <div class="not-found">
-          <p>$ cat: product not found</p>
+          <p>$ error: could not load product</p>
           <a routerLink="/products" class="back-link">cd products/</a>
         </div>
       }
@@ -230,9 +235,17 @@ import { Product } from '../../../models';
       text-align: center;
       color: var(--text-muted);
     }
+
+    .loading {
+      padding: 40px;
+      text-align: center;
+      color: var(--text-muted);
+    }
   `,
 })
 export class ProductDetailComponent {
+  private readonly router = inject(Router);
+
   private readonly productService = inject(ProductService);
   private readonly cartService = inject(CartService);
   private readonly notifications = inject(NotificationService);
@@ -245,12 +258,28 @@ export class ProductDetailComponent {
 
   product = signal<Product | undefined>(undefined);
 
+  loading = signal(true);
+
   quantity = signal(1);
 
   constructor() {
     const id = this.productId();
     if (id) {
-      this.product.set(this.productService.getProductById(id));
+      this.productService.getProduct(id).subscribe({
+        next: (product) => {
+          this.product.set(product);
+          this.loading.set(false);
+        },
+        error: (err: HttpErrorResponse) => {
+          this.loading.set(false);
+          if (err.status === 404) {
+            this.router.navigate(['/not-found']);
+          } else {
+            this.notifications.error('failed to load product');
+            this.router.navigate(['/products']);
+          }
+        },
+      });
     }
   }
 

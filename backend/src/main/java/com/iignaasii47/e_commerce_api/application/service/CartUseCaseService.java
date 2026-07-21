@@ -2,7 +2,8 @@ package com.iignaasii47.e_commerce_api.application.service;
 
 import com.iignaasii47.e_commerce_api.application.port.in.CartUseCase;
 import com.iignaasii47.e_commerce_api.application.port.in.ProductUseCase;
-import com.iignaasii47.e_commerce_api.domain.exception.AiServiceException;
+import com.iignaasii47.e_commerce_api.domain.exception.CartItemNotFoundException;
+import com.iignaasii47.e_commerce_api.domain.exception.ProductNotFoundException;
 import com.iignaasii47.e_commerce_api.domain.model.CartItem;
 import com.iignaasii47.e_commerce_api.domain.model.Product;
 import com.iignaasii47.e_commerce_api.domain.port.out.CartRepository;
@@ -41,7 +42,7 @@ public class CartUseCaseService implements CartUseCase {
         Long userId = securityContextProvider.getCurrentUserId();
         Optional<Product> productOpt = productUseCase.getProductById(productId);
         if (productOpt.isEmpty()) {
-            throw new AiServiceException("Product with ID " + productId + " not found");
+            throw new ProductNotFoundException("Product not found with id: " + productId);
         }
         Product product = productOpt.get();
 
@@ -59,6 +60,9 @@ public class CartUseCaseService implements CartUseCase {
     @Transactional
     public void removeFromCart(Long cartItemId) {
         Long userId = securityContextProvider.getCurrentUserId();
+        cartRepository.findById(cartItemId)
+                .filter(item -> item.getUserId().equals(userId))
+                .orElseThrow(() -> new CartItemNotFoundException("Cart item not found with id: " + cartItemId));
         cartRepository.removeItem(userId, cartItemId);
     }
 

@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { CartService } from './cart.service';
+import { NotificationService } from './notification.service';
 import { environment } from '../../environments/environment';
 
 describe('CartService', () => {
@@ -145,6 +146,28 @@ describe('CartService', () => {
     httpMock.expectOne(environment.apiUrl + '/api/cart').error(new ProgressEvent('error'));
 
     expect(service.items()).toEqual([]);
+  });
+
+  it('addToCart should show notification on 404', () => {
+    const notifications = TestBed.inject(NotificationService);
+    const errorSpy = vi.spyOn(notifications, 'error');
+
+    service.addToCart(99, 1);
+    const req = httpMock.expectOne(environment.apiUrl + '/api/cart?productId=99&quantity=1');
+    req.flush({}, { status: 404, statusText: 'Not Found' });
+
+    expect(errorSpy).toHaveBeenCalledWith('product not found');
+  });
+
+  it('removeFromCart should show notification and reload cart on 404', () => {
+    const notifications = TestBed.inject(NotificationService);
+    const errorSpy = vi.spyOn(notifications, 'error');
+
+    service.removeFromCart(99);
+    httpMock.expectOne(environment.apiUrl + '/api/cart/99').flush({}, { status: 404, statusText: 'Not Found' });
+    httpMock.expectOne(environment.apiUrl + '/api/cart').flush([]);
+
+    expect(errorSpy).toHaveBeenCalledWith('cart item not found');
   });
 
   describe('quantity correctness', () => {
