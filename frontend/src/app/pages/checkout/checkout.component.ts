@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { CartService, AuthService, NotificationService } from '../../services';
+import { Router, RouterLink } from '@angular/router';
+import { CartService, AuthService, NotificationService, OrderService } from '../../services';
 import { TerminalInputComponent } from '../../components/shared/terminal-input/terminal-input.component';
 import { TerminalButtonComponent } from '../../components/shared/terminal-button/terminal-button.component';
 
@@ -24,16 +24,25 @@ import { TerminalButtonComponent } from '../../components/shared/terminal-button
                   placeholder="123 Terminal St"
                   [value]="address()"
                   (valueChange)="address.set($event)" />
+                @if (errors().address) {
+                  <span class="field-error">{{ errors().address }}</span>
+                }
                 <app-terminal-input
                   label="city"
                   placeholder="San Francisco"
                   [value]="city()"
                   (valueChange)="city.set($event)" />
+                @if (errors().city) {
+                  <span class="field-error">{{ errors().city }}</span>
+                }
                 <app-terminal-input
                   label="zip"
                   placeholder="94102"
                   [value]="zip()"
                   (valueChange)="zip.set($event)" />
+                @if (errors().zip) {
+                  <span class="field-error">{{ errors().zip }}</span>
+                }
               </div>
             </div>
 
@@ -71,8 +80,8 @@ import { TerminalButtonComponent } from '../../components/shared/terminal-button
             </div>
 
             <div class="checkout-actions">
-              <app-terminal-button (click)="placeOrder()">
-                place-order
+              <app-terminal-button (click)="placeOrder()" [disabled]="placing()">
+                {{ placing() ? 'processing...' : 'place-order' }}
               </app-terminal-button>
             </div>
           </div>
@@ -100,6 +109,12 @@ import { TerminalButtonComponent } from '../../components/shared/terminal-button
       display: flex;
       flex-direction: column;
       gap: 8px;
+    }
+
+    .field-error {
+      color: var(--accent-red);
+      font-size: 11px;
+      padding-left: 4px;
     }
 
     .checkout-summary {
@@ -138,25 +153,74 @@ import { TerminalButtonComponent } from '../../components/shared/terminal-button
       padding: 40px;
       color: var(--text-muted);
     }
+
+    .back-link {
+      color: var(--text-muted);
+      font-size: 12px;
+
+      &:hover {
+        color: var(--accent-cyan);
+      }
+    }
   `,
 })
 export class CheckoutComponent {
   readonly cart = inject(CartService);
   private readonly auth = inject(AuthService);
   private readonly notifications = inject(NotificationService);
+  private readonly orderService = inject(OrderService);
+  private readonly router = inject(Router);
 
   readonly address = signal('');
   readonly city = signal('');
   readonly zip = signal('');
   readonly card = signal('');
   readonly exp = signal('');
+  readonly placing = signal(false);
+  readonly errors = signal<Record<string, string>>({});
 
   placeOrder(): void {
     if (!this.auth.isLoggedIn()) {
       this.notifications.error('please login to place an order');
       return;
     }
-    this.cart.clearCart();
-    this.notifications.success('order placed successfully! (mock)');
+
+    const validationErrors: Record<string, string> = {};
+    if (!this.address().trim()) {
+      validationErrors['address'] = 'address is required';
+    }
+    if (!this.city().trim()) {
+      validationErrors['city'] = 'city is required';
+    }
+    if (!this.zip().trim()) {
+      validationErrors['zip'] = 'zip is required';
+    }
+
+    if (Object.keys(validationErrors).length > 0) {
+      this.errors.set(validationErrors);
+      return;
+    }
+
+    this.errors.set({});
+    this.placing.set(true);
+
+    this.orderService
+      .createOrder({
+        shippingAddress: this.address().trim(),
+        shippingCity: this.city().trim(),
+        shippingZip: this.zip().trim(),
+      })
+      .subscribe({
+        next: (order) => {
+          this.cart.loadCart();
+          this.placing.set(false);
+          this.router.navigate(['/order', order.id]);
+        },
+        error: (err) => {
+          this.placing.set(false);
+          const message = err.error?.message ?? 'failed to place order';
+          this.notifications.error(message);
+        },
+      });
   }
 }

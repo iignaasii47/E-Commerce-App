@@ -50,4 +50,12 @@ public class ProductRepositoryImpl implements ProductRepository {
         return jpaProductRepository.findAllCategories();
     }
 
+    @Override
+    public void decrementStock(Long productId, int quantity) {
+        jpaProductRepository.findById(productId).ifPresent(entity -> {
+            entity.setStock(entity.getStock() - quantity);
+            jpaProductRepository.save(entity);
+        });
+    }
+
 }

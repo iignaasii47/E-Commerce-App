@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { CartService, NotificationService } from '../../services';
 import { TerminalButtonComponent } from '../../components/shared/terminal-button/terminal-button.component';
 
@@ -222,6 +222,7 @@ import { TerminalButtonComponent } from '../../components/shared/terminal-button
 export class CartComponent {
   readonly cart = inject(CartService);
   private readonly notifications = inject(NotificationService);
+  private readonly router = inject(Router);
 
   updateQty(item: { id: number; productId: number; quantity: number; productName: string }, qty: number): void {
     if (qty < 1) return;
@@ -234,6 +235,6 @@ export class CartComponent {
   }
 
   checkout(): void {
-    this.notifications.info('checkout flow coming soon...');
+    this.router.navigate(['/checkout']);
   }
 }

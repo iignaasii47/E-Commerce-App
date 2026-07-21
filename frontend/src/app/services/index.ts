@@ -4,3 +4,4 @@ export * from './auth.service';
 export * from './notification.service';
 export * from './chatbot.service';
 export * from './status.service';
+export * from './order.service';

@@ -17,4 +17,6 @@ public interface ProductRepository {
 
     List<String> findAllCategories();
 
+    void decrementStock(Long productId, int quantity);
+
 }

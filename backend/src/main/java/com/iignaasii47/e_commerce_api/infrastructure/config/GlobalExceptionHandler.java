@@ -3,7 +3,10 @@ package com.iignaasii47.e_commerce_api.infrastructure.config;
 import com.iignaasii47.e_commerce_api.domain.exception.AiServiceException;
 import com.iignaasii47.e_commerce_api.domain.exception.CartItemNotFoundException;
 import com.iignaasii47.e_commerce_api.domain.exception.DuplicateUserException;
+import com.iignaasii47.e_commerce_api.domain.exception.EmptyCartException;
+import com.iignaasii47.e_commerce_api.domain.exception.InsufficientStockException;
 import com.iignaasii47.e_commerce_api.domain.exception.InvalidCredentialsException;
+import com.iignaasii47.e_commerce_api.domain.exception.OrderNotFoundException;
 import com.iignaasii47.e_commerce_api.domain.exception.ProductNotFoundException;
 import com.iignaasii47.e_commerce_api.domain.exception.RefreshTokenException;
 
@@ -63,6 +66,24 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleCartItemNotFound(CartItemNotFoundException ex) {
         log.warn("Cart item not found: {}", ex.getMessage());
         return errorResponse(HttpStatus.NOT_FOUND, "Not Found", ex.getMessage());
+    }
+
+    @ExceptionHandler(OrderNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleOrderNotFound(OrderNotFoundException ex) {
+        log.warn("Order not found: {}", ex.getMessage());
+        return errorResponse(HttpStatus.NOT_FOUND, "Not Found", ex.getMessage());
+    }
+
+    @ExceptionHandler(EmptyCartException.class)
+    public ResponseEntity<Map<String, Object>> handleEmptyCart(EmptyCartException ex) {
+        log.warn("Empty cart: {}", ex.getMessage());
+        return errorResponse(HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage());
+    }
+
+    @ExceptionHandler(InsufficientStockException.class)
+    public ResponseEntity<Map<String, Object>> handleInsufficientStock(InsufficientStockException ex) {
+        log.warn("Insufficient stock: {}", ex.getMessage());
+        return errorResponse(HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
