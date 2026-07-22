@@ -9,7 +9,7 @@
 
 ---
 
-### DEV-01: Enforce Password Strength Policy
+### (DONE) DEV-01: Enforce Password Strength Policy
 
 **As a** platform administrator,
 **I want** password complexity rules enforced at registration and password changes,
