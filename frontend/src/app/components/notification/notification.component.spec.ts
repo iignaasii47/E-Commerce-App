@@ -3,6 +3,12 @@ import { NotificationComponent } from './notification.component';
 import { NotificationService } from '../../services';
 
 describe('NotificationComponent', () => {
+  afterEach(() => {
+    vi.useFakeTimers();
+    vi.advanceTimersByTime(5000);
+    vi.useRealTimers();
+  });
+
   async function setup() {
     await TestBed.configureTestingModule({
       imports: [NotificationComponent],

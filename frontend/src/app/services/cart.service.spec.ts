@@ -20,6 +20,8 @@ describe('CartService', () => {
 
   afterEach(() => {
     httpMock.verify();
+    (service as any).pendingTimeouts.forEach((t: ReturnType<typeof setTimeout>) => clearTimeout(t));
+    (service as any).pendingTimeouts.clear();
   });
 
   it('should be created', () => {
