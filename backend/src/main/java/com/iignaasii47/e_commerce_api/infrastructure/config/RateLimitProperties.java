@@ -10,6 +10,10 @@ public class RateLimitProperties {
     private int tokenRefresh = 10;
     private int chat = 30;
     private int windowSeconds = 60;
+    private String loginPath = "/api/users/login";
+    private String registrationPath = "/api/users";
+    private String refreshPath = "/api/auth/refresh";
+    private String chatPath = "/api/chat";
 
     public int getLogin() {
         return login;
@@ -49,6 +53,38 @@ public class RateLimitProperties {
 
     public void setWindowSeconds(int windowSeconds) {
         this.windowSeconds = windowSeconds;
+    }
+
+    public String getLoginPath() {
+        return loginPath;
+    }
+
+    public void setLoginPath(String loginPath) {
+        this.loginPath = loginPath;
+    }
+
+    public String getRegistrationPath() {
+        return registrationPath;
+    }
+
+    public void setRegistrationPath(String registrationPath) {
+        this.registrationPath = registrationPath;
+    }
+
+    public String getRefreshPath() {
+        return refreshPath;
+    }
+
+    public void setRefreshPath(String refreshPath) {
+        this.refreshPath = refreshPath;
+    }
+
+    public String getChatPath() {
+        return chatPath;
+    }
+
+    public void setChatPath(String chatPath) {
+        this.chatPath = chatPath;
     }
 
 }

@@ -20,11 +20,6 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 
 public class RateLimitingFilter extends OncePerRequestFilter {
 
-    private static final String LOGIN_PATH = "/api/users/login";
-    private static final String REGISTRATION_PATH = "/api/users";
-    private static final String REFRESH_PATH = "/api/auth/refresh";
-    private static final String CHAT_PATH = "/api/chat";
-
     private final RateLimitProperties properties;
     private final ConcurrentHashMap<String, Deque<Instant>> requestTimestamps = new ConcurrentHashMap<>();
 
@@ -78,13 +73,19 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     }
 
     private String resolveBucketKey(HttpServletRequest request, String path) {
-        return switch (path) {
-            case LOGIN_PATH -> "LOGIN:" + request.getRemoteAddr();
-            case REGISTRATION_PATH -> "REGISTRATION:" + request.getRemoteAddr();
-            case REFRESH_PATH -> "REFRESH:" + request.getRemoteAddr();
-            case CHAT_PATH -> "CHAT:" + resolveChatKey(request);
-            default -> null;
-        };
+        if (path.equals(properties.getLoginPath())) {
+            return "LOGIN:" + request.getRemoteAddr();
+        }
+        if (path.equals(properties.getRegistrationPath())) {
+            return "REGISTRATION:" + request.getRemoteAddr();
+        }
+        if (path.equals(properties.getRefreshPath())) {
+            return "REFRESH:" + request.getRemoteAddr();
+        }
+        if (path.equals(properties.getChatPath())) {
+            return "CHAT:" + resolveChatKey(request);
+        }
+        return null;
     }
 
     private String resolveChatKey(HttpServletRequest request) {
@@ -96,13 +97,19 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     }
 
     private int resolveLimit(String path) {
-        return switch (path) {
-            case LOGIN_PATH -> properties.getLogin();
-            case REGISTRATION_PATH -> properties.getRegistration();
-            case REFRESH_PATH -> properties.getTokenRefresh();
-            case CHAT_PATH -> properties.getChat();
-            default -> 0;
-        };
+        if (path.equals(properties.getLoginPath())) {
+            return properties.getLogin();
+        }
+        if (path.equals(properties.getRegistrationPath())) {
+            return properties.getRegistration();
+        }
+        if (path.equals(properties.getRefreshPath())) {
+            return properties.getTokenRefresh();
+        }
+        if (path.equals(properties.getChatPath())) {
+            return properties.getChat();
+        }
+        return 0;
     }
 
 }
