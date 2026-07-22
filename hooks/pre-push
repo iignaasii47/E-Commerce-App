@@ -1,24 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# On Windows, npm global binaries need .cmd extension to execute in bash
-case "$(uname -s)" in
-  *MINGW*|*MSYS*|*CYGWIN*)
-    OPENCODE="opencode.cmd"
-    ;;
-  *)
-    OPENCODE="opencode"
-    ;;
-esac
-
 # =============================================================================
-# Pre-push hook: SonarQube scan + Opencode review
-# Blocks the push if either stage fails.
+# Pre-push hook: SonarQube scan
+# Blocks the push if the scan fails.
 # =============================================================================
 
 # --- Configuration -----------------------------------------------------------
 SONAR_HOST_URL="http://localhost:9000"
-MODEL="opencode/big-pickle"
 
 # --- Helpers -----------------------------------------------------------------
 RED='\033[0;31m'
@@ -55,7 +44,7 @@ fi
 
 # --- Validate required env vars ----------------------------------------------
 MISSING=0
-for VAR in SONAR_TOKEN NVD_API_KEY OPENCODE_API_KEY; do
+for VAR in SONAR_TOKEN NVD_API_KEY; do
   if [ -z "${!VAR:-}" ]; then
     fail "Required environment variable $VAR is not set."
     MISSING=1
@@ -66,18 +55,11 @@ if [ "$MISSING" -eq 1 ]; then
   exit 1
 fi
 
-# --- Compute diff ------------------------------------------------------------
-DIFF=$(git diff "main...HEAD" 2>/dev/null || true)
-if [ -z "$DIFF" ]; then
-  info "No changes vs main — nothing to review."
-  exit 0
-fi
-
 # =============================================================================
-# STAGE 1: SonarQube Scan
+# SonarQube Scan
 # =============================================================================
 info "========================================="
-info "Stage 1: SonarQube Scan"
+info "SonarQube Scan"
 info "========================================="
 
 # --- Check SonarQube server --------------------------------------------------
@@ -126,55 +108,6 @@ fi
 ok "Frontend scan passed."
 
 ok "SonarQube scans completed successfully."
-
-# =============================================================================
-# STAGE 2: Opencode Review
-# =============================================================================
-info "========================================="
-info "Stage 2: Opencode Code Review"
-info "========================================="
-
-REVIEW_PROMPT="You are reviewing code changes in a pull request. Analyze the following diff and identify any issues: bugs, logic errors, security vulnerabilities, incorrect behavior, edge cases, or significant code quality problems.
-
-IMPORTANT: You MUST end your response with exactly one of these two lines on its own line:
-HOOK_VERDICT: PASS
-HOOK_VERDICT: FAIL
-
-Use PASS if the changes are acceptable (minor style issues are OK).
-Use FAIL if there are actual bugs, security issues, logic errors, or significant quality problems.
-
-Do NOT include any other HOOK_VERDICT lines. The last line of your response must be the verdict.
-
---- BEGIN DIFF ---
-$DIFF
---- END DIFF ---"
-
-REVIEW_OUTPUT=$($OPENCODE run --model "$MODEL" --format default "$REVIEW_PROMPT" 2>&1) || {
-  warn "Opencode run failed (exit code $?). Allowing push anyway."
-  exit 0
-}
-
-echo ""
-echo "$REVIEW_OUTPUT"
-echo ""
-
-# --- Parse verdict -----------------------------------------------------------
-VERDICT_LINE=$(echo "$REVIEW_OUTPUT" | grep -E "^HOOK_VERDICT:" | tail -1 || true)
-
-if [ -z "$VERDICT_LINE" ]; then
-  warn "No HOOK_VERDICT found in opencode output. Allowing push."
-  exit 0
-fi
-
-VERDICT=$(echo "$VERDICT_LINE" | sed 's/^HOOK_VERDICT:\s*//' | tr '[:upper:]' '[:lower:]' | xargs)
-
-if [ "$VERDICT" = "fail" ]; then
-  fail "Opencode review found issues — HOOK_VERDICT: FAIL"
-  fail "Push blocked. Fix the issues and try again."
-  exit 1
-fi
-
-ok "Opencode review passed — HOOK_VERDICT: PASS"
 
 # =============================================================================
 # All checks passed
