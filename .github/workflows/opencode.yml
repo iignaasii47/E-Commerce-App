@@ -25,6 +25,16 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Debug secret
+        run: |
+          if [ -n "$OPENCODE_API_KEY" ]; then
+            echo "OPENCODE_API_KEY is set (length: ${#OPENCODE_API_KEY})"
+          else
+            echo "ERROR: OPENCODE_API_KEY is empty or not set"
+          fi
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+
       - name: Run opencode
         uses: anomalyco/opencode/github@latest
         env:
