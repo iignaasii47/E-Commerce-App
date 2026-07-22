@@ -1,0 +1,184 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# On Windows, npm global binaries need .cmd extension to execute in bash
+case "$(uname -s)" in
+  *MINGW*|*MSYS*|*CYGWIN*)
+    OPENCODE="opencode.cmd"
+    ;;
+  *)
+    OPENCODE="opencode"
+    ;;
+esac
+
+# =============================================================================
+# Pre-push hook: SonarQube scan + Opencode review
+# Blocks the push if either stage fails.
+# =============================================================================
+
+# --- Configuration -----------------------------------------------------------
+SONAR_HOST_URL="http://localhost:9000"
+MODEL="opencode/big-pickle"
+
+# --- Helpers -----------------------------------------------------------------
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
+info()  { echo -e "${CYAN}[INFO]${NC}  $*"; }
+ok()    { echo -e "${GREEN}[OK]${NC}    $*"; }
+warn()  { echo -e "${YELLOW}[WARN]${NC}  $*"; }
+fail()  { echo -e "${RED}[FAIL]${NC}  $*"; }
+
+# --- Skip on main ------------------------------------------------------------
+BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null || echo "")
+if [ "$BRANCH" = "main" ]; then
+  info "On main branch — skipping pre-push hook."
+  exit 0
+fi
+
+# --- Load .env ---------------------------------------------------------------
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+ENV_FILE="$REPO_ROOT/.env"
+
+if [ -f "$ENV_FILE" ]; then
+  info "Loading .env from $ENV_FILE"
+  set -a
+  # shellcheck disable=SC1091
+  source "$ENV_FILE"
+  set +a
+else
+  warn ".env file not found at $ENV_FILE — environment variables must be exported."
+fi
+
+# --- Validate required env vars ----------------------------------------------
+MISSING=0
+for VAR in SONAR_TOKEN NVD_API_KEY OPENCODE_API_KEY; do
+  if [ -z "${!VAR:-}" ]; then
+    fail "Required environment variable $VAR is not set."
+    MISSING=1
+  fi
+done
+if [ "$MISSING" -eq 1 ]; then
+  fail "Missing required environment variables. Aborting."
+  exit 1
+fi
+
+# --- Compute diff ------------------------------------------------------------
+DIFF=$(git diff "main...HEAD" 2>/dev/null || true)
+if [ -z "$DIFF" ]; then
+  info "No changes vs main — nothing to review."
+  exit 0
+fi
+
+# =============================================================================
+# STAGE 1: SonarQube Scan
+# =============================================================================
+info "========================================="
+info "Stage 1: SonarQube Scan"
+info "========================================="
+
+# --- Check SonarQube server --------------------------------------------------
+if ! curl -sf "$SONAR_HOST_URL/api/system/status" > /dev/null 2>&1; then
+  fail "SonarQube server is not reachable at $SONAR_HOST_URL"
+  fail "Push blocked. Start SonarQube and try again."
+  exit 1
+fi
+ok "SonarQube server is reachable."
+
+# --- Backend scan ------------------------------------------------------------
+info "Running backend SonarQube scan..."
+(
+  cd "$REPO_ROOT/backend"
+  if [ ! -f "./mvnw" ]; then
+    fail "Maven wrapper (mvnw) not found in backend/"
+    exit 1
+  fi
+  chmod +x ./mvnw 2>/dev/null || true
+  ./mvnw clean verify sonar:sonar \
+    "-Dsonar.host.url=$SONAR_HOST_URL" \
+    "-Dsonar.token=$SONAR_TOKEN" \
+    "-DnvdApiKey=$NVD_API_KEY"
+)
+BACKEND_EXIT=$?
+if [ "$BACKEND_EXIT" -ne 0 ]; then
+  fail "Backend SonarQube scan failed with exit code $BACKEND_EXIT."
+  fail "Push blocked."
+  exit 1
+fi
+ok "Backend scan passed."
+
+# --- Frontend scan -----------------------------------------------------------
+info "Running frontend tests + SonarQube scan..."
+(
+  cd "$REPO_ROOT/frontend"
+  npm test -- --watch=false --coverage --coverage-reporters lcov --coverage-reporters text
+  npx sonar-scanner
+)
+FRONTEND_EXIT=$?
+if [ "$FRONTEND_EXIT" -ne 0 ]; then
+  fail "Frontend SonarQube scan failed with exit code $FRONTEND_EXIT."
+  fail "Push blocked."
+  exit 1
+fi
+ok "Frontend scan passed."
+
+ok "SonarQube scans completed successfully."
+
+# =============================================================================
+# STAGE 2: Opencode Review
+# =============================================================================
+info "========================================="
+info "Stage 2: Opencode Code Review"
+info "========================================="
+
+REVIEW_PROMPT="You are reviewing code changes in a pull request. Analyze the following diff and identify any issues: bugs, logic errors, security vulnerabilities, incorrect behavior, edge cases, or significant code quality problems.
+
+IMPORTANT: You MUST end your response with exactly one of these two lines on its own line:
+HOOK_VERDICT: PASS
+HOOK_VERDICT: FAIL
+
+Use PASS if the changes are acceptable (minor style issues are OK).
+Use FAIL if there are actual bugs, security issues, logic errors, or significant quality problems.
+
+Do NOT include any other HOOK_VERDICT lines. The last line of your response must be the verdict.
+
+--- BEGIN DIFF ---
+$DIFF
+--- END DIFF ---"
+
+REVIEW_OUTPUT=$($OPENCODE run --model "$MODEL" --format default "$REVIEW_PROMPT" 2>&1) || {
+  warn "Opencode run failed (exit code $?). Allowing push anyway."
+  exit 0
+}
+
+echo ""
+echo "$REVIEW_OUTPUT"
+echo ""
+
+# --- Parse verdict -----------------------------------------------------------
+VERDICT_LINE=$(echo "$REVIEW_OUTPUT" | grep -E "^HOOK_VERDICT:" | tail -1 || true)
+
+if [ -z "$VERDICT_LINE" ]; then
+  warn "No HOOK_VERDICT found in opencode output. Allowing push."
+  exit 0
+fi
+
+VERDICT=$(echo "$VERDICT_LINE" | sed 's/^HOOK_VERDICT:\s*//' | tr '[:upper:]' '[:lower:]' | xargs)
+
+if [ "$VERDICT" = "fail" ]; then
+  fail "Opencode review found issues — HOOK_VERDICT: FAIL"
+  fail "Push blocked. Fix the issues and try again."
+  exit 1
+fi
+
+ok "Opencode review passed — HOOK_VERDICT: PASS"
+
+# =============================================================================
+# All checks passed
+# =============================================================================
+echo ""
+ok "All checks passed. Push allowed."
+exit 0
