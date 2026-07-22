@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,7 +42,7 @@ class OrderControllerTest {
     private static final UsernamePasswordAuthenticationToken AUTH =
             new UsernamePasswordAuthenticationToken(1L, null, List.of());
 
-    private static final LocalDateTime NOW = LocalDateTime.of(2026, 7, 21, 12, 0);
+    private static final LocalDateTime NOW = LocalDateTime.of(2026, Month.JULY, 21, 12, 0);
 
     @Test
     void shouldCreateOrder() throws Exception {

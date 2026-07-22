@@ -8,13 +8,13 @@ import com.iignaasii47.e_commerce_api.infrastructure.persistence.entity.OrderIte
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,7 +26,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class OrderRepositoryImplTest {
 
-    private static final LocalDateTime NOW = LocalDateTime.of(2026, 7, 21, 12, 0);
+    private static final LocalDateTime NOW = LocalDateTime.of(2026, Month.JULY, 21, 12, 0);
 
     @Mock
     private JpaOrderRepository jpaOrderRepository;

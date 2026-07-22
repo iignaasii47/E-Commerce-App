@@ -3,6 +3,7 @@ package com.iignaasii47.e_commerce_api.infrastructure.persistence.entity;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -18,7 +19,7 @@ class OrderEntityTest {
         entity.setShippingAddress("123 Main St");
         entity.setShippingCity("Springfield");
         entity.setShippingZip("12345");
-        entity.setCreatedAt(LocalDateTime.of(2026, 7, 21, 12, 0));
+        entity.setCreatedAt(LocalDateTime.of(2026, Month.JULY, 21, 12, 0));
 
         assertThat(entity.getId()).isEqualTo(1L);
         assertThat(entity.getUserId()).isEqualTo(10L);

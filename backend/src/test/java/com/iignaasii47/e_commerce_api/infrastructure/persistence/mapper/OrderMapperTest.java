@@ -10,13 +10,14 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class OrderMapperTest {
 
-    private static final LocalDateTime NOW = LocalDateTime.of(2026, 7, 21, 12, 0);
+    private static final LocalDateTime NOW = LocalDateTime.of(2026, Month.JULY, 21, 12, 0);
 
     @Test
     void shouldMapEntityToDomain() {

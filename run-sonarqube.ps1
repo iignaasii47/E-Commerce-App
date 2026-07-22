@@ -22,7 +22,7 @@ if ($LASTEXITCODE -ne 0) {
 
 Write-Host "=== Running SonarQube scan for Frontend ==="
 Push-Location "$root\Frontend"
-cmd /c "npm test -- --coverage --coverage-reporters lcov --coverage-reporters text"
+cmd /c "npm test -- --watch=false --coverage --coverage-reporters lcov --coverage-reporters text"
 if ($LASTEXITCODE -ne 0) {
     Write-Host "ERROR: Frontend tests failed with exit code $LASTEXITCODE."
     exit $LASTEXITCODE
