@@ -113,13 +113,7 @@ export class RegisterComponent {
         if (err.status === 409) {
           this.errorMessage.set(handleHttpError(err, 'username or email already taken'));
         } else if (err.status === 400) {
-          const fields = err.error;
-          if (typeof fields === 'object' && fields !== null) {
-            const msgs = Object.values(fields).flat().join('; ');
-            this.errorMessage.set(String(msgs));
-          } else {
-            this.errorMessage.set('validation failed — check your input');
-          }
+          this.errorMessage.set(handleHttpError(err, 'validation failed — check your input'));
         } else {
           this.errorMessage.set(handleHttpError(err, 'unexpected error — please try again'));
         }
