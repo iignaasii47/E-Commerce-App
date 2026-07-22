@@ -1,0 +1,41 @@
+name: Frontend SonarQube
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-sonarqube.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-sonarqube.yml'
+
+defaults:
+  run:
+    working-directory: frontend
+
+jobs:
+  sonarqube:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+
+      - name: Test with coverage
+        run: npm test -- --watch=false --coverage --coverage-reporters lcov --coverage-reporters text
+
+      - name: SonarQube Scan
+        run: npx sonar-scanner
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
