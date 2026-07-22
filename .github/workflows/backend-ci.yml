@@ -5,20 +5,20 @@ on:
     branches: [main, master]
     paths:
       - 'backend/**'
-      - '.github/workflows/**'
+      - '.github/workflows/backend-ci.yml'
   pull_request:
     branches: [main, master]
     paths:
       - 'backend/**'
-      - '.github/workflows/**'
+      - '.github/workflows/backend-ci.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  test:
-    name: Build & Test
+  ci:
     runs-on: self-hosted
-    defaults:
-      run:
-        working-directory: backend
 
     steps:
       - uses: actions/checkout@v4
@@ -31,6 +31,7 @@ jobs:
           cache: 'maven'
 
       - name: Build & Test
+        working-directory: backend
         run: ./mvnw.cmd verify -B -DnvdApiKey=$env:NVD_API_KEY
         env:
           OPENROUTER_API_KEY: ci-placeholder
@@ -49,3 +50,100 @@ jobs:
         with:
           name: dependency-check-report
           path: backend/target/dependency-check-report.html
+
+      - name: Fetch full git history
+        run: git fetch --unshallow 2>$null; if (-not $?) { echo "Already full depth or no remote" }
+
+      - name: SonarQube Scan
+        working-directory: backend
+        run: ./mvnw.cmd sonar:sonar -Dsonar.host.url=http://localhost:9000 "-Dsonar.token=$env:SONAR_TOKEN" "-DnvdApiKey=$env:NVD_API_KEY"
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+
+      - name: Get backend diff (for PR review)
+        if: github.event_name == 'pull_request'
+        id: diff
+        shell: powershell
+        run: |
+          $diff = git diff origin/${{ github.base_ref }}...HEAD -- backend/
+          if (-not $diff) {
+            "skip=true" >> $env:GITHUB_OUTPUT
+            exit 0
+          }
+          $diff | Out-File backend-diff.txt -Encoding utf8
+          "skip=false" >> $env:GITHUB_OUTPUT
+
+      - name: Run opencode review
+        if: github.event_name == 'pull_request' && steps.diff.outputs.skip == 'false'
+        shell: powershell
+        run: |
+          $prompt = @'
+          Review the following backend PR diff. Focus on finding:
+           1. Bugs and logic errors that could cause runtime failures
+           2. Security vulnerabilities (injection, auth flaws, data exposure, etc.)
+           3. Performance issues (N+1 queries, memory leaks, unnecessary allocations, etc.)
+           4. Code quality issues (antipatterns, error handling gaps, concurrency issues, etc.)
+
+          For each issue found:
+           - Specify the exact file path and line number
+           - Assign a severity: "critical" (must fix), "warning" (should fix), or "info" (consider improving)
+           - Provide a clear, actionable description
+
+          At the very end of your response, output a JSON array wrapped in ```json ... ``` markers.
+          Each element in the array must have exactly these four fields:
+           - file (string): the file path relative to repo root
+           - line (number): the exact line number
+           - severity (string): "critical", "warning", or "info"
+           - message (string): a concise description of the issue
+
+          Example:
+          ```json
+          [
+            { "file": "backend/src/main/java/com/example/MyController.java", "line": 42, "severity": "critical", "message": "Query is vulnerable to SQL injection. Use parameterized queries instead of string concatenation." }
+          ]
+          ```
+
+          If no issues are found, return an empty array: []
+          '@
+          $result = opencode run -m opencode/big-pickle $prompt -f backend-diff.txt 2>$null
+          $result | Out-File review-full.txt -Encoding utf8
+          if ($result -match '```json\s*(\[[\s\S]*?\])\s*```') {
+            $matches[1] | Out-File review-issues.json -Encoding utf8
+          }
+
+      - name: Post PR review with per-line comments
+        if: github.event_name == 'pull_request' && steps.diff.outputs.skip == 'false'
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $full = Get-Content review-full.txt -Raw
+
+          $issues = @()
+          if (Test-Path review-issues.json) {
+            try {
+              $issues = Get-Content review-issues.json -Raw | ConvertFrom-Json
+            } catch {
+              $issues = @()
+            }
+          }
+
+          $body = "## Backend OpenCode Review (opencode/big-pickle)`n`n$full"
+
+          $comments = $issues | ForEach-Object {
+            @{
+              path = $_.file
+              line = [int]$_.line
+              body = "**[$($_.severity)]** $($_.message)"
+            }
+          }
+
+          $review = @{
+            body = $body
+            event = "COMMENT"
+            comments = @($comments)
+          } | ConvertTo-Json -Compress -Depth 10
+
+          $review | Out-File review-payload.json -Encoding utf8 -NoNewline
+          gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews --input review-payload.json
