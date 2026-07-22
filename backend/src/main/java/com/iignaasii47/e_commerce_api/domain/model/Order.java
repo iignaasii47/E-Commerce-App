@@ -17,17 +17,20 @@ public class Order {
     private final String shippingZip;
     private final LocalDateTime createdAt;
 
-    public Order(Long id, Long userId, OrderStatus status, List<OrderItem> items, BigDecimal total,
-                 String shippingAddress, String shippingCity, String shippingZip, LocalDateTime createdAt) {
-        this.id = id;
-        this.userId = userId;
-        this.status = status;
-        this.items = items;
-        this.total = total;
-        this.shippingAddress = shippingAddress;
-        this.shippingCity = shippingCity;
-        this.shippingZip = shippingZip;
-        this.createdAt = createdAt;
+    private Order(Builder builder) {
+        this.id = builder.id;
+        this.userId = builder.userId;
+        this.status = builder.status;
+        this.items = builder.items;
+        this.total = builder.total;
+        this.shippingAddress = builder.shippingAddress;
+        this.shippingCity = builder.shippingCity;
+        this.shippingZip = builder.shippingZip;
+        this.createdAt = builder.createdAt;
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 
     public Long getId() {
@@ -77,6 +80,67 @@ public class Order {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    public static class Builder {
+        private Long id;
+        private Long userId;
+        private OrderStatus status;
+        private List<OrderItem> items;
+        private BigDecimal total;
+        private String shippingAddress;
+        private String shippingCity;
+        private String shippingZip;
+        private LocalDateTime createdAt;
+
+        public Builder id(Long id) {
+            this.id = id;
+            return this;
+        }
+
+        public Builder userId(Long userId) {
+            this.userId = userId;
+            return this;
+        }
+
+        public Builder status(OrderStatus status) {
+            this.status = status;
+            return this;
+        }
+
+        public Builder items(List<OrderItem> items) {
+            this.items = items;
+            return this;
+        }
+
+        public Builder total(BigDecimal total) {
+            this.total = total;
+            return this;
+        }
+
+        public Builder shippingAddress(String shippingAddress) {
+            this.shippingAddress = shippingAddress;
+            return this;
+        }
+
+        public Builder shippingCity(String shippingCity) {
+            this.shippingCity = shippingCity;
+            return this;
+        }
+
+        public Builder shippingZip(String shippingZip) {
+            this.shippingZip = shippingZip;
+            return this;
+        }
+
+        public Builder createdAt(LocalDateTime createdAt) {
+            this.createdAt = createdAt;
+            return this;
+        }
+
+        public Order build() {
+            return new Order(this);
+        }
     }
 
 }

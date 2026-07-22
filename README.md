@@ -10,7 +10,7 @@ A full-stack e-commerce platform with an AI-powered shopping assistant. Built wi
 - **Standalone Angular components** with signals-based state management (no NgRx)
 - **AI Chatbot** with agentic tool-calling loop backed by OpenRouter LLMs
 - **JWT authentication** with stateless security and role-based access control
-- **CI/CD pipelines** via GitHub Actions with code coverage reporting
+- **Pre-push hook** — Automated SonarQube scans and AI code review via OpenCode on every non-main push
 - **SonarQube integration** for static analysis on both projects
 
 ---
@@ -143,14 +143,44 @@ src/app/
 
 ---
 
-## CI/CD
+## Pre-Push Hook (CI/CD)
 
-Two independent GitHub Actions pipelines:
+A local Git pre-push hook runs two automated checks before any push to a non-`main` branch. The push is **blocked** if either check fails.
 
-- **Backend CI** — Sets up JDK 26 (Zulu), runs `mvn verify`, uploads JaCoCo coverage report
-- **Frontend CI** — Sets up Node.js 22, runs typecheck, tests with coverage, builds, uploads coverage report
+| Stage | What it does |
+|---|---|
+| **SonarQube Scan** | Runs backend (`mvnw verify sonar:sonar`) and frontend (`npm test` + `sonar-scanner`) static analysis against a local SonarQube instance |
+| **Opencode Review** | AI-powered code review of the full diff vs `main` using `opencode/big-pickle` |
 
-Both trigger on pushes and PRs to `main`/`master` scoped to their respective directories.
+### One-Time Setup
+
+1. **Install the hook** — run this once from the project root:
+
+```bash
+git config core.hooksPath hooks/
+```
+
+2. **Ensure required environment variables are set** (export them or keep them in `.env`):
+
+| Variable | Purpose |
+|---|---|
+| `SONAR_TOKEN` | SonarQube authentication token |
+| `NVD_API_KEY` | NVD vulnerability database API key |
+| `OPENCODE_API_KEY` | OpenCode Zen API key (from [opencode.ai/zen](https://opencode.ai/zen)) |
+
+3. **Start SonarQube** at `localhost:9000` before pushing.
+
+### How It Works
+
+```
+git push → pre-push hook fires
+  ├── On main? → skip (allow push)
+  ├── SonarQube unreachable? → block push
+  ├── Backend scan fails? → block push
+  ├── Frontend scan fails? → block push
+  ├── Opencode finds issues? → block push
+  └── All checks pass → allow push
+```
 
 ---
 
@@ -225,7 +255,8 @@ E-Commerce-App/
 │       ├── pages/                    # Route page components
 │       ├── services/                 # Injectable services
 │       └── models/                   # TypeScript interfaces
-├── .github/workflows/                # CI/CD pipelines
+├── hooks/                            # Git hooks (tracked)
+│   └── pre-push                      # SonarQube + Opencode review hook
 ├── serve.ps1                         # One-command startup script
 └── run-sonarqube.ps1                 # SonarQube analysis script
 ```

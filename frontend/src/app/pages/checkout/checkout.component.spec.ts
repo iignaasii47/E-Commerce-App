@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { CheckoutComponent } from './checkout.component';
@@ -90,19 +90,23 @@ describe('CheckoutComponent', () => {
   });
 
   it('should place order successfully when logged in', async () => {
-    const { fixture } = await setup();
+    const { fixture, httpMock } = await setup();
     const cart = TestBed.inject(CartService);
     cart.items.set([apiItem()]);
     const auth = TestBed.inject(AuthService);
     (auth as any).currentUser.set({ id: 1, username: 'user', email: 'user@test.com' });
-    const notifications = TestBed.inject(NotificationService);
-    const successSpy = vi.spyOn(notifications, 'success');
-    const clearSpy = vi.spyOn(cart, 'clearCart');
+    const loadCartSpy = vi.spyOn(cart, 'loadCart');
+    const router = TestBed.inject(Router);
+    vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    fixture.componentInstance.address.set('123 Main St');
+    fixture.componentInstance.city.set('Springfield');
+    fixture.componentInstance.zip.set('12345');
     fixture.detectChanges();
 
     fixture.componentInstance.placeOrder();
-    expect(clearSpy).toHaveBeenCalled();
-    expect(successSpy).toHaveBeenCalledWith('order placed successfully! (mock)');
+    httpMock.expectOne(environment.apiUrl + '/api/orders').flush({ id: 1, status: 'CONFIRMED' });
+    httpMock.expectOne(environment.apiUrl + '/api/cart').flush([]);
+    expect(loadCartSpy).toHaveBeenCalled();
   });
 
   it('should show back link when cart is empty', async () => {

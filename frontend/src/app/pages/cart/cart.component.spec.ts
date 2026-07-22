@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { CartComponent } from './cart.component';
@@ -137,12 +137,12 @@ describe('CartComponent', () => {
     expect(fixture.nativeElement.querySelector('app-terminal-button')).toBeTruthy();
   });
 
-  it('checkout should show info notification', async () => {
+  it('checkout should navigate to checkout page', async () => {
     const { fixture } = await setup();
-    const notifications = TestBed.inject(NotificationService);
-    const infoSpy = vi.spyOn(notifications, 'info');
+    const router = TestBed.inject(Router);
+    const navSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
     fixture.componentInstance.checkout();
-    expect(infoSpy).toHaveBeenCalledWith('checkout flow coming soon...');
+    expect(navSpy).toHaveBeenCalledWith(['/checkout']);
   });
 
   describe('quantity interactions', () => {

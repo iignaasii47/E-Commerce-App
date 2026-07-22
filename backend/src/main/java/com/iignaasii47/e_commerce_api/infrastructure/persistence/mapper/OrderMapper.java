@@ -21,17 +21,17 @@ public class OrderMapper {
         List<OrderItem> items = itemEntities == null
                 ? Collections.emptyList()
                 : itemEntities.stream().map(OrderMapper::toDomainItem).toList();
-        return new Order(
-                entity.getId(),
-                entity.getUserId(),
-                OrderStatus.valueOf(entity.getStatus()),
-                items,
-                entity.getTotal(),
-                entity.getShippingAddress(),
-                entity.getShippingCity(),
-                entity.getShippingZip(),
-                entity.getCreatedAt()
-        );
+        return Order.builder()
+                .id(entity.getId())
+                .userId(entity.getUserId())
+                .status(OrderStatus.valueOf(entity.getStatus()))
+                .items(items)
+                .total(entity.getTotal())
+                .shippingAddress(entity.getShippingAddress())
+                .shippingCity(entity.getShippingCity())
+                .shippingZip(entity.getShippingZip())
+                .createdAt(entity.getCreatedAt())
+                .build();
     }
 
     public static OrderEntity toEntity(Order order) {

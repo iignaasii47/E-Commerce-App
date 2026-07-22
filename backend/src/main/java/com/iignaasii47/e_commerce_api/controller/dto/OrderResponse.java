@@ -1,7 +1,6 @@
 package com.iignaasii47.e_commerce_api.controller.dto;
 
 import com.iignaasii47.e_commerce_api.domain.model.Order;
-import com.iignaasii47.e_commerce_api.domain.model.OrderItem;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
