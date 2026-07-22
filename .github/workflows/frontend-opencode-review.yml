@@ -1,8 +1,16 @@
 name: Frontend OpenCode Review
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-opencode-review.yml'
   pull_request:
-    branches: [main, master]
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-opencode-review.yml'
 
 jobs:
   review:
