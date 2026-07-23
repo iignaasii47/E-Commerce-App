@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  ci:
+  backend-ci:
     runs-on: self-hosted
 
     steps:
