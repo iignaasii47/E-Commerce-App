@@ -9,6 +9,7 @@ describe('App', () => {
   let httpMock: HttpTestingController;
 
   beforeEach(async () => {
+    localStorage.clear();
     await TestBed.configureTestingModule({
       imports: [App],
       providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],

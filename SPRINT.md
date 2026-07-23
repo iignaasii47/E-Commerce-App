@@ -33,7 +33,7 @@
 
 ---
 
-### DEV-02: Rate Limiting on Auth & Chat Endpoints
+### (DONE) DEV-02: Rate Limiting on Auth & Chat Endpoints
 
 **As a** platform administrator,
 **I want** rate limiting on login, registration, token refresh, and chat endpoints,
