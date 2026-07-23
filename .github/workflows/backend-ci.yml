@@ -32,7 +32,7 @@ jobs:
 
       - name: Build & Test
         working-directory: backend
-        run: ./mvnw.cmd verify -B -DnvdApiKey=$env:NVD_API_KEY
+        run: ./mvnw.cmd verify -B -DnvdApiKey=%NVD_API_KEY%
         env:
           OPENROUTER_API_KEY: ci-placeholder
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
@@ -57,7 +57,7 @@ jobs:
 
       - name: SonarQube Scan
         working-directory: backend
-        run: ./mvnw.cmd sonar:sonar -Dsonar.host.url=http://localhost:9000 "-Dsonar.token=$env:SONAR_TOKEN" "-DnvdApiKey=$env:NVD_API_KEY"
+        run: ./mvnw.cmd sonar:sonar -Dsonar.host.url=http://localhost:9000 "-Dsonar.token=%SONAR_TOKEN%" "-DnvdApiKey=%NVD_API_KEY%"
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
