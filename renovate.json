@@ -1,0 +1,31 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "group:angularMonorepo",
+    "group:recommended"
+  ],
+  "labels": ["dependencies", "renovate"],
+  "schedule": ["before 9am on Monday"],
+  "packageRules": [
+    {
+      "description": "Group all Spring Boot updates",
+      "matchPackagePrefixes": ["org.springframework.boot"],
+      "groupName": "Spring Boot",
+      "groupSlug": "spring-boot"
+    },
+    {
+      "description": "Group all GitHub Actions updates",
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions",
+      "groupSlug": "github-actions"
+    },
+    {
+      "description": "Group non-Angular frontend devDependencies",
+      "matchPaths": ["frontend/package.json"],
+      "matchDepTypes": ["devDependencies"],
+      "groupName": "Frontend devDependencies",
+      "groupSlug": "frontend-dev"
+    }
+  ]
+}
