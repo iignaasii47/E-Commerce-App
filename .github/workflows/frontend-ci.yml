@@ -61,8 +61,7 @@ jobs:
 
       - name: SonarQube Scan
         working-directory: frontend
-        shell: cmd
-        run: npx sonar-scanner -Dsonar.token=%SONAR_TOKEN%
+        run: npx sonar-scanner "-Dsonar.token=$env:SONAR_TOKEN"
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
