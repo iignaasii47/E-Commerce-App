@@ -52,7 +52,7 @@ jobs:
           path: backend/target/dependency-check-report.html
 
       - name: Fetch full git history
-        run: git fetch --unshallow 2>$null; if (-not $?) { echo "Already full depth or no remote" }
+        run: if (git rev-parse --is-shallow-repository 2>$null) { git fetch --unshallow 2>$null } else { echo "Already full depth or no remote" }
 
       - name: SonarQube Scan
         working-directory: backend
