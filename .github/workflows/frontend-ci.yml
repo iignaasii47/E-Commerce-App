@@ -110,11 +110,18 @@ jobs:
 
           If no issues are found, return an empty array: []
           '@
-          $result = opencode run -m opencode/big-pickle $prompt -f frontend-diff.txt 2>&1
-          $ocExitCode = $LASTEXITCODE
+          $tmpOut = [System.IO.Path]::GetTempFileName()
+          try {
+              opencode run -m opencode/big-pickle $prompt -f frontend-diff.txt 2>$null | Out-File $tmpOut -Encoding utf8
+              $ocExitCode = $LASTEXITCODE
+          } catch {
+              $ocExitCode = 1
+          }
           $LASTEXITCODE = 0
+          $result = Get-Content $tmpOut -Raw
+          Remove-Item $tmpOut -Force -ErrorAction SilentlyContinue
           Write-Host "--- opencode output ---"
-          $result | ForEach-Object { Write-Host $_ }
+          Write-Host $result
           Write-Host "--- end opencode output ---"
           $result | Out-File review-full.txt -Encoding utf8
           if ($result -match '```json\s*(\[[\s\S]*?\])\s*```') {
