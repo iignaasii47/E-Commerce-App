@@ -108,11 +108,14 @@ jobs:
 
           If no issues are found, return an empty array: []
           '@
-          $result = opencode run -m opencode/big-pickle $prompt -f backend-diff.txt 2>$null
+          $result = opencode run -m opencode/big-pickle $prompt -f backend-diff.txt 2>&1
+          $ocExitCode = $LASTEXITCODE
+          $LASTEXITCODE = 0
           $result | Out-File review-full.txt -Encoding utf8
           if ($result -match '```json\s*(\[[\s\S]*?\])\s*```') {
             $matches[1] | Out-File review-issues.json -Encoding utf8
           }
+          if ($ocExitCode -ne 0) { Write-Host "opencode exited with code $ocExitCode (see review-full.txt for details)" }
 
       - name: Post PR review with per-line comments
         if: github.event_name == 'pull_request' && steps.diff.outputs.skip == 'false'
