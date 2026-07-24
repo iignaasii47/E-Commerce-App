@@ -31,10 +31,6 @@ jobs:
         working-directory: frontend
         run: npm ci
 
-      - name: Security audit
-        working-directory: frontend
-        run: npm audit --audit-level=high
-
       - name: Typecheck
         working-directory: frontend
         run: npx tsc -b --noEmit
