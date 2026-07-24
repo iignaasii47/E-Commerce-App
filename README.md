@@ -145,12 +145,11 @@ src/app/
 
 ## Pre-Push Hook (CI/CD)
 
-A local Git pre-push hook runs two automated checks before any push to a non-`main` branch. The push is **blocked** if either check fails.
+A local Git pre-push hook runs automated checks before any push to a non-`main` branch. The push is **blocked** if the check fails.
 
 | Stage | What it does |
 |---|---|
 | **SonarQube Scan** | Runs backend (`mvnw verify sonar:sonar`) and frontend (`npm test` + `sonar-scanner`) static analysis against a local SonarQube instance |
-| **Opencode Review** | AI-powered code review of the full diff vs `main` using `opencode/big-pickle` |
 
 ### One-Time Setup
 
@@ -166,7 +165,6 @@ git config core.hooksPath hooks/
 |---|---|
 | `SONAR_TOKEN` | SonarQube authentication token |
 | `NVD_API_KEY` | NVD vulnerability database API key |
-| `OPENCODE_API_KEY` | OpenCode Zen API key (from [opencode.ai/zen](https://opencode.ai/zen)) |
 
 3. **Start SonarQube** at `localhost:9000` before pushing.
 
@@ -178,7 +176,6 @@ git push → pre-push hook fires
   ├── SonarQube unreachable? → block push
   ├── Backend scan fails? → block push
   ├── Frontend scan fails? → block push
-  ├── Opencode finds issues? → block push
   └── All checks pass → allow push
 ```
 
@@ -256,7 +253,7 @@ E-Commerce-App/
 │       ├── services/                 # Injectable services
 │       └── models/                   # TypeScript interfaces
 ├── hooks/                            # Git hooks (tracked)
-│   └── pre-push                      # SonarQube + Opencode review hook
+│   └── pre-push                      # SonarQube analysis hook
 ├── serve.ps1                         # One-command startup script
 └── run-sonarqube.ps1                 # SonarQube analysis script
 ```

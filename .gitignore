@@ -17,6 +17,9 @@ backend/target/
 backend/logs/
 backend/*.log
 
+### Github Actions Local Server ###
+actions-runner
+
 ### Logs ###
 *.log
 docker-logs*.txt
