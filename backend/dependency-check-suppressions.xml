@@ -5,4 +5,9 @@
         <packageUrl regex="true">^pkg:maven/org\.eclipse\.angus/angus-activation@.*$</packageUrl>
         <cpe>cpe:/a:eclipse:angus_mail</cpe>
     </suppress>
+    <suppress>
+        <notes>FP — CVE-2022-31691 affects spring-boot/spring-tools, not spring-boot-devtools. Devtools is optional and dev-only.</notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework\.boot/spring-boot-devtools@.*$</packageUrl>
+        <cve>CVE-2022-31691</cve>
+    </suppress>
 </suppressions>
