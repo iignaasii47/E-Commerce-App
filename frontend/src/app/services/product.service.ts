@@ -11,7 +11,7 @@ export class ProductService {
   private readonly currentPage = signal(0);
   private readonly totalPages = signal(0);
   private readonly totalElements = signal(0);
-  private readonly pageSize = signal(10);
+  private readonly pageSize = signal(8);
   private readonly sortField = signal('name');
   private readonly sortDir = signal('asc');
   private readonly content = signal<Product[]>([]);
