@@ -1,5 +1,6 @@
 package com.iignaasii47.e_commerce_api.util;
 
+import com.iignaasii47.e_commerce_api.domain.model.PageResult;
 import com.iignaasii47.e_commerce_api.domain.model.Product;
 import com.iignaasii47.e_commerce_api.domain.model.User;
 import com.iignaasii47.e_commerce_api.infrastructure.persistence.entity.ProductEntity;
@@ -8,6 +9,7 @@ import com.iignaasii47.e_commerce_api.infrastructure.persistence.entity.UserEnti
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.util.List;
 
 public final class TestFixtures {
 
@@ -31,6 +33,10 @@ public final class TestFixtures {
         entity.setStock(10);
         entity.setRating(4.5);
         return entity;
+    }
+
+    public static PageResult<Product> aPageResultOf(Product product) {
+        return new PageResult<>(List.of(product), 1, 1, 0, 10);
     }
 
     public static User aJohnUser() {

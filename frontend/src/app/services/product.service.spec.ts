@@ -3,7 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ProductService } from './product.service';
 import { environment } from '../../environments/environment';
-import { Product } from '../models';
+import { Product, PaginatedResponse } from '../models';
 
 const MOCK_PRODUCTS: Product[] = [
   {
@@ -27,21 +27,26 @@ const MOCK_PRODUCTS: Product[] = [
     image: 'https://placehold.co/400x300/0a0e14/ffb000?text=WM-PRO',
     stock: 45, rating: 4.5,
   },
-  {
-    id: 4, name: 'USB-C Hub 7-in-1',
-    description: 'USB-C hub with HDMI 4K, 3x USB-A 3.0.',
-    price: 39.99, category: 'accessories',
-    image: 'https://placehold.co/400x300/0a0e14/ff6bcb?text=USB-C',
-    stock: 120, rating: 4.3,
-  },
-  {
-    id: 5, name: 'Noise-Cancelling Headphones',
-    description: 'Over-ear ANC headphones with 40-hour battery.',
-    price: 249.99, category: 'audio',
-    image: 'https://placehold.co/400x300/0a0e14/e6e6e9?text=ANC-40',
-    stock: 15, rating: 4.8,
-  },
 ];
+
+const PAGINATED_RESPONSE: PaginatedResponse<Product> = {
+  content: MOCK_PRODUCTS,
+  totalElements: 3,
+  totalPages: 1,
+  currentPage: 0,
+  pageSize: 10,
+};
+
+function mockInitialRequests(httpMock: HttpTestingController) {
+  const productsReq = httpMock.expectOne(
+    (req) => req.url === environment.apiUrl + '/api/products' && req.method === 'GET',
+  );
+  productsReq.flush(PAGINATED_RESPONSE);
+  const categoriesReq = httpMock.expectOne(
+    (req) => req.url === environment.apiUrl + '/api/products/categories' && req.method === 'GET',
+  );
+  categoriesReq.flush(['peripherals', 'displays']);
+}
 
 describe('ProductService', () => {
   let service: ProductService;
@@ -53,9 +58,7 @@ describe('ProductService', () => {
     });
     httpMock = TestBed.inject(HttpTestingController);
     service = TestBed.inject(ProductService);
-    const req = httpMock.expectOne(environment.apiUrl + '/api/products');
-    expect(req.request.method).toBe('GET');
-    req.flush(MOCK_PRODUCTS);
+    mockInitialRequests(httpMock);
   });
 
   afterEach(() => {
@@ -67,19 +70,21 @@ describe('ProductService', () => {
   });
 
   it('should return products loaded from API', () => {
-    expect(service.allProducts().length).toBe(5);
+    expect(service.products().length).toBe(3);
   });
 
-  it('should compute unique categories', () => {
-    const categories = service.categories();
-    expect(categories).toContain('peripherals');
-    expect(categories).toContain('displays');
-    expect(categories).toContain('audio');
-    expect(categories).toContain('accessories');
-    expect(categories.length).toBe(4);
+  it('should load categories from API', () => {
+    expect(service.categories()).toContain('peripherals');
+    expect(service.categories()).toContain('displays');
   });
 
-  it('should get product by id', () => {
+  it('should return pagination metadata', () => {
+    expect(service.total()).toBe(3);
+    expect(service.pages()).toBe(1);
+    expect(service.page()).toBe(0);
+  });
+
+  it('should get product by id from current page', () => {
     const product = service.getProductById(1);
     expect(product).toBeDefined();
     expect(product!.name).toBe('Mechanical Keyboard MK-750');
@@ -89,49 +94,76 @@ describe('ProductService', () => {
     expect(service.getProductById(999)).toBeUndefined();
   });
 
-  it('should get products by category', () => {
-    const peripherals = service.getByCategory('peripherals');
-    expect(peripherals.length).toBe(2);
-    expect(peripherals.every((p) => p.category === 'peripherals')).toBe(true);
+  it('should call API with search param when search is invoked', () => {
+    service.search('keyboard');
+
+    const req = httpMock.expectOne(
+      (r) =>
+        r.url === environment.apiUrl + '/api/products' &&
+        r.params.get('search') === 'keyboard',
+    );
+    req.flush({ ...PAGINATED_RESPONSE, content: [MOCK_PRODUCTS[0]], totalElements: 1 });
   });
 
-  it('should return empty array for non-existent category', () => {
-    expect(service.getByCategory('nonexistent')).toEqual([]);
+  it('should call API with category param when filtering by category', () => {
+    service.filterByCategory('peripherals');
+
+    const req = httpMock.expectOne(
+      (r) =>
+        r.url === environment.apiUrl + '/api/products' &&
+        r.params.get('category') === 'peripherals',
+    );
+    req.flush({ ...PAGINATED_RESPONSE, content: [MOCK_PRODUCTS[0], MOCK_PRODUCTS[2]], totalElements: 2 });
   });
 
-  it('should search products by name (case insensitive)', () => {
-    const results = service.search('keyboard');
-    expect(results.length).toBe(1);
-    expect(results[0].id).toBe(1);
+  it('should change page when goToPage is called', () => {
+    service.setSort('price', 'desc');
+    const sortReq = httpMock.expectOne((r) => r.params.get('sort') === 'price,desc');
+    sortReq.flush({ ...PAGINATED_RESPONSE, totalPages: 3, currentPage: 0 });
+
+    service.goToPage(1);
+
+    const req = httpMock.expectOne(
+      (r) => r.url === environment.apiUrl + '/api/products' && r.params.get('page') === '1',
+    );
+    req.flush({ ...PAGINATED_RESPONSE, currentPage: 1, totalPages: 3 });
+
+    expect(service.page()).toBe(1);
   });
 
-  it('should search products by description', () => {
-    const results = service.search('curved');
-    expect(results.length).toBe(1);
-    expect(results[0].id).toBe(2);
+  it('should set sort params when setSort is called', () => {
+    service.setSort('price', 'desc');
+
+    const req = httpMock.expectOne(
+      (r) =>
+        r.url === environment.apiUrl + '/api/products' &&
+        r.params.get('sort') === 'price,desc',
+    );
+    req.flush(PAGINATED_RESPONSE);
+
+    expect(service.currentSort()).toBe('price');
+    expect(service.currentSortDir()).toBe('desc');
   });
 
-  it('should search products by category', () => {
-    const results = service.search('audio');
-    expect(results.length).toBe(1);
-    expect(results[0].id).toBe(5);
-  });
+  it('should reset page to 0 when sort changes', () => {
+    service.setSort('price', 'desc');
+    let sortReq = httpMock.expectOne((r) => r.params.get('sort') === 'price,desc');
+    sortReq.flush({ ...PAGINATED_RESPONSE, totalPages: 3, currentPage: 0 });
 
-  it('should return multiple results for broad search', () => {
-    const results = service.search('usb');
-    expect(results.length).toBeGreaterThanOrEqual(1);
-  });
+    service.goToPage(1);
+    const pageReq = httpMock.expectOne(
+      (r) => r.params.get('page') === '1',
+    );
+    pageReq.flush({ ...PAGINATED_RESPONSE, currentPage: 1, totalPages: 3 });
 
-  it('should return empty for unmatched search', () => {
-    expect(service.search('zzzzz')).toEqual([]);
-  });
+    service.setSort('name', 'desc');
 
-  it('search should be case insensitive', () => {
-    const lower = service.search('keyboard');
-    const upper = service.search('KEYBOARD');
-    const mixed = service.search('KeyBoard');
-    expect(lower.length).toBe(upper.length);
-    expect(upper.length).toBe(mixed.length);
+    const req = httpMock.expectOne(
+      (r) => r.params.get('page') === '0' && r.params.get('sort') === 'name,desc',
+    );
+    req.flush(PAGINATED_RESPONSE);
+
+    expect(service.page()).toBe(0);
   });
 
   it('should handle API error gracefully', () => {
@@ -141,10 +173,18 @@ describe('ProductService', () => {
     });
     httpMock = TestBed.inject(HttpTestingController);
     service = TestBed.inject(ProductService);
-    const req = httpMock.expectOne(environment.apiUrl + '/api/products');
-    req.error(new ProgressEvent('Network error'));
 
-    expect(service.allProducts().length).toBe(0);
+    const productsReq = httpMock.expectOne(
+      (r) => r.url === environment.apiUrl + '/api/products',
+    );
+    productsReq.error(new ProgressEvent('Network error'));
+    const categoriesReq = httpMock.expectOne(
+      (r) => r.url === environment.apiUrl + '/api/products/categories',
+    );
+    categoriesReq.error(new ProgressEvent('Network error'));
+
+    expect(service.products().length).toBe(0);
+    expect(service.categories().length).toBe(0);
   });
 
   it('getProduct should fetch single product from API', () => {

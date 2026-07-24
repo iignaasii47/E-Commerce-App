@@ -1,23 +1,27 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 import { ProductService } from '../../services';
 import { TerminalCardComponent } from '../../components/shared/terminal-card/terminal-card.component';
 import { TerminalInputComponent } from '../../components/shared/terminal-input/terminal-input.component';
+import { TerminalPaginationComponent } from '../../components/shared/terminal-pagination/terminal-pagination.component';
 
 @Component({
   selector: 'app-products',
   standalone: true,
-  imports: [RouterLink, TerminalCardComponent, TerminalInputComponent],
+  imports: [RouterLink, TerminalCardComponent, TerminalInputComponent, TerminalPaginationComponent],
   template: `
     <div class="page-container">
       <a routerLink="/" class="back-link">$ cd ~</a>
       <h1 class="page-title">ls products/</h1>
       <p class="page-subtitle">
-        {{ filteredProducts().length }} items found
+        {{ productService.total() }} items found
         @if (searchQuery()) {
           <span> — searching: "{{ searchQuery() }}"</span>
+        }
+        @if (productService.pages() > 1) {
+          <span> — page {{ productService.page() + 1 }} of {{ productService.pages() }}</span>
         }
       </p>
 
@@ -28,6 +32,19 @@ import { TerminalInputComponent } from '../../components/shared/terminal-input/t
             [value]="searchQuery()"
             (valueChange)="onSearch($event)" />
         </div>
+
+        <div class="sort-row">
+          <span class="sort-label">$ sort by:</span>
+          @for (opt of sortOptions; track opt.label) {
+            <button
+              class="filter-tag"
+              [class.active]="productService.currentSort() === opt.field && productService.currentSortDir() === opt.dir"
+              (click)="productService.setSort(opt.field, opt.dir)">
+              {{ opt.label }}
+            </button>
+          }
+        </div>
+
         <div class="category-filters">
           <button
             class="filter-tag"
@@ -35,7 +52,7 @@ import { TerminalInputComponent } from '../../components/shared/terminal-input/t
             (click)="selectCategory('')">
             all
           </button>
-          @for (cat of categories(); track cat) {
+          @for (cat of productService.categories(); track cat) {
             <button
               class="filter-tag"
               [class.active]="selectedCategory() === cat"
@@ -47,7 +64,7 @@ import { TerminalInputComponent } from '../../components/shared/terminal-input/t
       </div>
 
       <div class="product-grid">
-        @for (product of filteredProducts(); track product.id) {
+        @for (product of productService.products(); track product.id) {
           <app-terminal-card [product]="product" />
         } @empty {
           <div class="empty-state">
@@ -56,6 +73,13 @@ import { TerminalInputComponent } from '../../components/shared/terminal-input/t
           </div>
         }
       </div>
+
+      @if (productService.pages() > 1) {
+        <app-terminal-pagination
+          [currentPage]="productService.page()"
+          [totalPages]="productService.pages()"
+          (pageChange)="productService.goToPage($event)" />
+      }
     </div>
   `,
   styles: `
@@ -68,6 +92,20 @@ import { TerminalInputComponent } from '../../components/shared/terminal-input/t
 
     .search-bar {
       max-width: 400px;
+    }
+
+    .sort-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .sort-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-right: 4px;
+      font-family: var(--font-mono);
     }
 
     .category-filters {
@@ -119,52 +157,40 @@ import { TerminalInputComponent } from '../../components/shared/terminal-input/t
     }
   `,
 })
-export class ProductsComponent {
-  private readonly productService = inject(ProductService);
+export class ProductsComponent implements OnInit {
+  readonly productService = inject(ProductService);
   private readonly route = inject(ActivatedRoute);
 
   readonly searchQuery = signal('');
   readonly selectedCategory = signal('');
 
-  readonly categories = this.productService.categories;
+  readonly sortOptions = [
+    { label: 'name ↑', field: 'name', dir: 'asc' },
+    { label: 'name ↓', field: 'name', dir: 'desc' },
+    { label: 'price ↑', field: 'price', dir: 'asc' },
+    { label: 'price ↓', field: 'price', dir: 'desc' },
+  ];
 
   private readonly queryParam = toSignal(
     this.route.queryParamMap.pipe(map((params) => params.get('q') ?? '')),
     { initialValue: '' },
   );
 
-  readonly filteredProducts = computed(() => {
-    let products = this.productService.allProducts();
-
-    const q = this.searchQuery() || this.queryParam();
-    if (q) {
-      const lower = q.toLowerCase();
-      products = products.filter(
-        (p) =>
-          p.name.toLowerCase().includes(lower) ||
-          p.description.toLowerCase().includes(lower) ||
-          p.category.toLowerCase().includes(lower),
-      );
-    }
-
-    const cat = this.selectedCategory();
-    if (cat) {
-      products = products.filter((p) => p.category === cat);
-    }
-
-    return products;
-  });
-
-  constructor() {
+  ngOnInit(): void {
     const q = this.queryParam();
-    if (q) this.searchQuery.set(q);
+    if (q) {
+      this.searchQuery.set(q);
+      this.productService.search(q);
+    }
   }
 
   onSearch(value: string): void {
     this.searchQuery.set(value);
+    this.productService.search(value);
   }
 
   selectCategory(category: string): void {
     this.selectedCategory.set(category);
+    this.productService.filterByCategory(category);
   }
 }

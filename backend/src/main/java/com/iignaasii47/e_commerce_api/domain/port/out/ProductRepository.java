@@ -1,5 +1,6 @@
 package com.iignaasii47.e_commerce_api.domain.port.out;
 
+import com.iignaasii47.e_commerce_api.domain.model.PageResult;
 import com.iignaasii47.e_commerce_api.domain.model.Product;
 
 import java.util.List;
@@ -18,5 +19,8 @@ public interface ProductRepository {
     List<String> findAllCategories();
 
     void decrementStock(Long productId, int quantity);
+
+    PageResult<Product> findProducts(String search, String category, int page, int size,
+                                     String sortBy, String sortDir);
 
 }

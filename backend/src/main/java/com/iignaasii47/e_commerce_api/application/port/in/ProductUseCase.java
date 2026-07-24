@@ -1,5 +1,6 @@
 package com.iignaasii47.e_commerce_api.application.port.in;
 
+import com.iignaasii47.e_commerce_api.domain.model.PageResult;
 import com.iignaasii47.e_commerce_api.domain.model.Product;
 
 import java.util.List;
@@ -16,5 +17,8 @@ public interface ProductUseCase {
     List<Product> searchProducts(String query);
 
     List<String> getCategories();
+
+    PageResult<Product> getProducts(String search, String category, int page, int size,
+                                    String sortBy, String sortDir);
 
 }

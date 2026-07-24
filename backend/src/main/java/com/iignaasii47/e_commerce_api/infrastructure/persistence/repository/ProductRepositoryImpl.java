@@ -1,9 +1,16 @@
 package com.iignaasii47.e_commerce_api.infrastructure.persistence.repository;
 
+import com.iignaasii47.e_commerce_api.domain.model.PageResult;
 import com.iignaasii47.e_commerce_api.domain.model.Product;
 import com.iignaasii47.e_commerce_api.domain.port.out.ProductRepository;
+import com.iignaasii47.e_commerce_api.infrastructure.persistence.entity.ProductEntity;
 import com.iignaasii47.e_commerce_api.infrastructure.persistence.mapper.ProductMapper;
+import com.iignaasii47.e_commerce_api.infrastructure.persistence.specification.ProductSpecification;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -56,6 +63,36 @@ public class ProductRepositoryImpl implements ProductRepository {
             entity.setStock(entity.getStock() - quantity);
             jpaProductRepository.save(entity);
         });
+    }
+
+    @Override
+    public PageResult<Product> findProducts(String search, String category, int page, int size,
+                                             String sortBy, String sortDir) {
+        Specification<ProductEntity> spec = (root, query, cb) -> cb.conjunction();
+
+        if (search != null && !search.isBlank()) {
+            spec = spec.and(ProductSpecification.matchesSearch(search));
+        }
+        if (category != null && !category.isBlank()) {
+            spec = spec.and(ProductSpecification.hasCategory(category));
+        }
+
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
+        PageRequest pageRequest = PageRequest.of(page, size, sort);
+
+        Page<ProductEntity> result = jpaProductRepository.findAll(spec, pageRequest);
+
+        List<Product> products = result.getContent().stream()
+                .map(ProductMapper::toDomain)
+                .toList();
+
+        return new PageResult<>(
+                products,
+                result.getTotalElements(),
+                result.getTotalPages(),
+                result.getNumber(),
+                result.getSize()
+        );
     }
 
 }

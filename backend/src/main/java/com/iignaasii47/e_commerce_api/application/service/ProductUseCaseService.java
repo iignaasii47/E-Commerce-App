@@ -1,6 +1,7 @@
 package com.iignaasii47.e_commerce_api.application.service;
 
 import com.iignaasii47.e_commerce_api.application.port.in.ProductUseCase;
+import com.iignaasii47.e_commerce_api.domain.model.PageResult;
 import com.iignaasii47.e_commerce_api.domain.model.Product;
 import com.iignaasii47.e_commerce_api.domain.port.out.ProductRepository;
 
@@ -47,6 +48,13 @@ public class ProductUseCaseService implements ProductUseCase {
     @Transactional(readOnly = true)
     public List<String> getCategories() {
         return productRepository.findAllCategories();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResult<Product> getProducts(String search, String category, int page, int size,
+                                           String sortBy, String sortDir) {
+        return productRepository.findProducts(search, category, page, size, sortBy, sortDir);
     }
 
 }
