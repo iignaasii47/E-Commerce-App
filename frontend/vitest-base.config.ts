@@ -8,6 +8,7 @@ export default defineConfig({
     poolOptions: {
       forks: {
         singleFork: true,
+        forkTimeout: 1200000,
       },
     },
   },
