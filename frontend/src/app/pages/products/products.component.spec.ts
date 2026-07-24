@@ -154,4 +154,53 @@ describe('ProductsComponent', () => {
     expect(sortLabel).toBeTruthy();
     expect(sortLabel.textContent).toContain('sort by');
   });
+
+  it('should trigger API call when sort button is clicked', async () => {
+    const { fixture, httpMock } = await setup();
+
+    const sortBtn = Array.from(
+      fixture.nativeElement.querySelectorAll('.filter-tag'),
+    ).find((b) => (b as HTMLElement).textContent?.trim() === 'price ↓') as HTMLElement | undefined;
+    sortBtn?.click();
+
+    const req = httpMock.expectOne((r) => r.params.get('sort') === 'price,desc');
+    req.flush(PAGINATED_RESPONSE);
+  });
+
+  it('should mark default sort as active', async () => {
+    const { fixture } = await setup();
+    const sortRow = fixture.nativeElement.querySelector('.sort-row');
+    const active = Array.from(sortRow.querySelectorAll('.filter-tag')).find(
+      (f) => (f as HTMLElement).classList.contains('active'),
+    ) as HTMLElement | undefined;
+    expect(active?.textContent?.trim()).toBe('name ↑');
+  });
+
+  it('should show pagination when totalPages > 1', async () => {
+    const { fixture, httpMock } = await setup();
+
+    fixture.componentInstance.onSearch('test');
+    const req = httpMock.expectOne((r) => r.params.get('search') === 'test');
+    req.flush({ ...PAGINATED_RESPONSE, content: MOCK_PRODUCTS, totalPages: 3, currentPage: 0 });
+    fixture.detectChanges();
+
+    const pagination = fixture.nativeElement.querySelector('.pagination');
+    expect(pagination).toBeTruthy();
+  });
+
+  it('should hide pagination when only one page', async () => {
+    const { fixture } = await setup();
+    const pagination = fixture.nativeElement.querySelector('.pagination');
+    expect(pagination).toBeFalsy();
+  });
+
+  it('should reset page to 0 when changing category', async () => {
+    const { fixture, httpMock } = await setup();
+    fixture.componentInstance.selectCategory('peripherals');
+
+    const req = httpMock.expectOne(
+      (r) => r.params.get('category') === 'peripherals' && r.params.get('page') === '0',
+    );
+    req.flush(PAGINATED_RESPONSE);
+  });
 });
