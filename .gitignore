@@ -27,3 +27,6 @@ docker-logs*.txt
 *.iml
 .DS_Store
 Thumbs.db
+
+### Actions Runner ###
+actions-runner
