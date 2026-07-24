@@ -1,4 +1,4 @@
-import { Injectable, inject, signal, computed } from '@angular/core';
+import { Injectable, OnDestroy, inject, signal, computed } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { ApiCartItem } from '../models';
@@ -6,7 +6,7 @@ import { environment } from '../../environments/environment';
 import { NotificationService } from './notification.service';
 
 @Injectable({ providedIn: 'root' })
-export class CartService {
+export class CartService implements OnDestroy {
   private readonly http = inject(HttpClient);
   private readonly notificationService = inject(NotificationService);
 
@@ -21,6 +21,13 @@ export class CartService {
   readonly itemCount = computed(() => this.items().reduce((sum, item) => sum + item.quantity, 0));
 
   private readonly pendingTimeouts = new Map<number, ReturnType<typeof setTimeout>>();
+
+  ngOnDestroy(): void {
+    for (const timeout of this.pendingTimeouts.values()) {
+      clearTimeout(timeout);
+    }
+    this.pendingTimeouts.clear();
+  }
 
   constructor() {
     this.loadCart();

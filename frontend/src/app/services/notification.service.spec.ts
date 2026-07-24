@@ -9,6 +9,12 @@ describe('NotificationService', () => {
     service = TestBed.inject(NotificationService);
   });
 
+  afterEach(() => {
+    vi.useFakeTimers();
+    vi.advanceTimersByTime(5000);
+    vi.useRealTimers();
+  });
+
   it('should be created', () => {
     expect(service).toBeTruthy();
   });

@@ -21,5 +21,9 @@ export function handleHttpError(err: HttpErrorResponse, fallback: string): strin
     }
   }
 
+  if (typeof err.error?.error === 'string') {
+    return err.error.error;
+  }
+
   return err.error?.message ?? fallback;
 }
