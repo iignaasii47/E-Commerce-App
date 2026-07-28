@@ -30,6 +30,10 @@ jobs:
           distribution: 'zulu'
           cache: 'maven'
 
+      - name: Make mvnw executable
+        working-directory: backend
+        run: chmod +x mvnw
+
       - name: Build & Test
         working-directory: backend
         run: ./mvnw verify -B -DnvdApiKey=$NVD_API_KEY

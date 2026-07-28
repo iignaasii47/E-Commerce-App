@@ -53,6 +53,12 @@ jobs:
         shell: bash
         run: git fetch --unshallow 2>/dev/null || echo Already full depth or no remote
 
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '26'
+          distribution: 'zulu'
+
       - name: SonarQube Scan
         working-directory: frontend
         run: npx sonar-scanner "-Dsonar.qualitygate.wait=true"
