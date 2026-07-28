@@ -203,7 +203,65 @@ git push → pre-push hook fires
 
 ---
 
-## Running Locally
+## Running with Docker (Recommended)
+
+No need to install Java, Node, or PostgreSQL — everything runs in containers.
+
+### Prerequisites
+- Docker
+- Docker Compose
+
+### 1. Configure Environment Variables
+
+Copy `.env.template` to `.env` and fill in the required values:
+
+```bash
+cp .env.template .env
+```
+
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `JWT_SECRET` | **Yes** | — | JWT signing secret (at least 256 bits) |
+| `OPENROUTER_API_KEY` | **Yes** | — | OpenRouter API key for AI chatbot |
+| `DB_USERNAME` | No | `postgres` | PostgreSQL user |
+| `DB_PASSWORD` | No | `postgres` | PostgreSQL password |
+| `JWT_ACCESS_TOKEN_EXPIRATION_MS` | No | `900000` | Access token lifetime (ms) |
+| `JWT_REFRESH_TOKEN_EXPIRATION_MS` | No | `604800000` | Refresh token lifetime (ms) |
+
+### 2. Start Everything
+
+```bash
+# Option A — helper script (auto-starts Docker daemon if needed):
+./serve.sh
+
+# Option B — directly:
+docker compose up --build
+```
+
+This starts three containers:
+- **PostgreSQL 16** on port `5432` (data persisted via `pgdata` volume)
+- **Spring Boot backend** on port `8080` (waits for DB healthcheck)
+- **Angular frontend** on port `4200` (hot-reload via volume mount)
+
+### 3. Access
+
+| Service | URL |
+|---|---|
+| Frontend | http://localhost:4200 |
+| Backend API | http://localhost:8080 |
+| Swagger Docs | http://localhost:8080/docs |
+
+### Services
+
+| Container | Port | Healthcheck | Restart |
+|---|---|---|---|
+| `postgres` | 5432 | `pg_isready` every 5s | `unless-stopped` |
+| `backend` | 8080 | depends on postgres healthy | `unless-stopped` |
+| `frontend` | 4200 | depends on backend | `unless-stopped` |
+
+---
+
+## Running Locally (Without Docker)
 
 ### Prerequisites
 - Java 26+
@@ -254,6 +312,9 @@ E-Commerce-App/
 │       └── models/                   # TypeScript interfaces
 ├── hooks/                            # Git hooks (tracked)
 │   └── pre-push                      # SonarQube analysis hook
-├── serve.ps1                         # One-command startup script
+├── docker-compose.yml                # Docker Compose orchestration
+├── .env.template                     # Environment variable template
+├── serve.sh                          # Docker startup script (Linux/Mac)
+├── serve.ps1                         # Native startup script (Windows)
 └── run-sonarqube.ps1                 # SonarQube analysis script
 ```
