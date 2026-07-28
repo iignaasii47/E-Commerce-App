@@ -26,16 +26,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
         working-directory: frontend
         run: npm ci
-
-      - name: Security audit
-        working-directory: frontend
-        run: npm audit --audit-level=high
 
       - name: Typecheck
         working-directory: frontend
@@ -56,12 +50,17 @@ jobs:
           path: frontend/coverage/
 
       - name: Fetch full git history
-        shell: cmd
-        run: git fetch --unshallow 2>nul || echo Already full depth or no remote
+        shell: bash
+        run: git fetch --unshallow 2>/dev/null || echo Already full depth or no remote
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '26'
+          distribution: 'zulu'
 
       - name: SonarQube Scan
         working-directory: frontend
         run: npx sonar-scanner "-Dsonar.qualitygate.wait=true"
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-

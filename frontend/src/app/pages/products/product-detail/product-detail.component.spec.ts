@@ -31,7 +31,11 @@ describe('ProductDetailComponent', () => {
     }).compileComponents();
     const httpMock = TestBed.inject(HttpTestingController);
     const fixture = TestBed.createComponent(ProductDetailComponent);
-    httpMock.expectOne(environment.apiUrl + '/api/products').flush(MOCK_PRODUCTS);
+    httpMock.expectOne((r) => r.url === environment.apiUrl + '/api/products').flush({
+      content: MOCK_PRODUCTS, totalElements: 2, totalPages: 1, currentPage: 0, pageSize: 10,
+    });
+    httpMock.expectOne(environment.apiUrl + '/api/products/categories').flush(['peripherals', 'displays']);
+    httpMock.expectOne(environment.apiUrl + '/api/cart').flush([]);
     const component = fixture.componentInstance;
     component.loading.set(false);
     fixture.detectChanges();
