@@ -9,8 +9,8 @@ A full-stack e-commerce platform with an AI-powered shopping assistant. Built wi
 - **Hexagonal Architecture** (Ports & Adapters) on the backend with strict dependency inversion
 - **Standalone Angular components** with signals-based state management (no NgRx)
 - **AI Chatbot** with agentic tool-calling loop backed by OpenRouter LLMs
-- **JWT authentication** with stateless security and role-based access control
-- **Pre-push hook** — Automated SonarQube scans and AI code review via OpenCode on every non-main push
+- **JWT access/refresh token authentication** with stateless security
+- **CI/CD** — GitHub Actions workflows with automated build, test, and SonarQube analysis
 - **SonarQube integration** for static analysis on both projects
 
 ---
@@ -97,7 +97,7 @@ src/app/
 ### Product Catalog
 - Browse, search, and filter products by category
 - Product detail pages with image serving (binary + external redirect fallback)
-- Seed data: 10 tech peripherals pre-loaded via Flyway
+- Seed data: 51 products across 5 categories pre-loaded via Flyway
 
 ### Shopping Cart
 - Add/remove products, quantity management
@@ -106,8 +106,8 @@ src/app/
 
 ### Authentication
 - User registration and login with BCrypt password hashing
-- Stateless JWT Bearer token authentication (24h expiry)
-- Auto-logout on 401 responses with redirect to login
+- Stateless JWT access/refresh token authentication (15-minute access / 7-day refresh tokens)
+- Transparent token refresh on 401, auto-logout with redirect to login if refresh fails
 
 ### AI Shopping Assistant
 - Conversational chatbot powered by OpenRouter (free LLM models)
@@ -136,54 +136,38 @@ src/app/
 | `GET` | `/api/products/{id}/image` | Public | Get product image |
 | `POST` | `/api/users` | Public | Register |
 | `POST` | `/api/users/login` | Public | Login (returns JWT) |
+| `POST` | `/api/auth/refresh` | Public | Refresh access token |
+| `POST` | `/api/auth/logout` | Public | Logout (invalidates refresh token) |
 | `GET` | `/api/cart` | Authenticated | View cart |
 | `POST` | `/api/cart` | Authenticated | Add to cart |
-| `DELETE` | `/api/cart/{id}` | Authenticated | Remove from cart |
+| `DELETE` | `/api/cart/{cartItemId}` | Authenticated | Remove from cart |
+| `POST` | `/api/orders` | Authenticated | Place an order |
+| `GET` | `/api/orders/{orderId}` | Authenticated | Get order by ID |
 | `POST` | `/api/chat` | Authenticated | Chat with AI assistant |
 
 ---
 
-## Pre-Push Hook (CI/CD)
+## CI/CD (GitHub Actions)
 
-A local Git pre-push hook runs automated checks before any push to a non-`main` branch. The push is **blocked** if the check fails.
+CI workflows run on a self-hosted runner. Both pipelines build, test, and run a SonarQube quality gate analysis.
 
-| Stage | What it does |
-|---|---|
-| **SonarQube Scan** | Runs backend (`mvnw verify sonar:sonar`) and frontend (`npm test` + `sonar-scanner`) static analysis against a local SonarQube instance |
+| Workflow | Triggers | Steps |
+|---|---|---|
+| **backend-ci.yml** | Push/PR to `main`, `backend/**` paths | Maven verify → SonarQube scan (with OWASP dep check) |
+| **frontend-ci.yml** | Push/PR to `main`, `frontend/**` paths | Typecheck → Vitest with coverage → Build → SonarQube scan |
+| **renovate.yml** | Weekly (Mon 9am) + manual | Automated dependency updates via Renovate |
 
-### One-Time Setup
+Secrets required: `SONAR_TOKEN`, `NVD_API_KEY`, `RENOVATE_TOKEN`.
 
-1. **Install the hook** — run this once from the project root:
-
-```bash
-git config core.hooksPath hooks/
-```
-
-2. **Ensure required environment variables are set** (export them or keep them in `.env`):
-
-| Variable | Purpose |
-|---|---|
-| `SONAR_TOKEN` | SonarQube authentication token |
-| `NVD_API_KEY` | NVD vulnerability database API key |
-
-3. **Start SonarQube** at `localhost:9000` before pushing.
-
-### How It Works
-
-```
-git push → pre-push hook fires
-  ├── On main? → skip (allow push)
-  ├── SonarQube unreachable? → block push
-  ├── Backend scan fails? → block push
-  ├── Frontend scan fails? → block push
-  └── All checks pass → allow push
-```
+SonarQube dashboards:
+- Backend: `http://localhost:9000/dashboard?id=ecommerce-api`
+- Frontend: `http://localhost:9000/dashboard?id=ecommerce-web`
 
 ---
 
 ## Testing
 
-### Backend (49 test classes)
+### Backend (60+ test classes)
 
 | Layer | Approach |
 |---|---|
@@ -303,15 +287,21 @@ E-Commerce-App/
 │   │   ├── application/              # Use-case interfaces + services
 │   │   ├── domain/                   # Models, exceptions, outbound ports
 │   │   └── infrastructure/           # JPA, security, clients, config
-│   └── src/test/                     # 49 test classes
+│   └── src/test/                     # 60+ test classes
 ├── frontend/                         # Angular SPA
 │   └── src/app/
-│       ├── components/               # Shared UI components
-│       ├── pages/                    # Route page components
+│       ├── components/               # Shared UI components (layout, shared, notification)
+│       ├── pages/                    # Route page components (lazy-loaded)
+│       │   ├── auth/                 # Login, register
+│       │   ├── cart/
+│       │   ├── chatbot/
+│       │   ├── checkout/
+│       │   ├── home/
+│       │   ├── not-found/
+│       │   ├── order-confirmation/
+│       │   └── products/             # Product list, product detail
 │       ├── services/                 # Injectable services
 │       └── models/                   # TypeScript interfaces
-├── hooks/                            # Git hooks (tracked)
-│   └── pre-push                      # SonarQube analysis hook
 ├── docker-compose.yml                # Docker Compose orchestration
 ├── .env.template                     # Environment variable template
 ├── serve.sh                          # Docker startup script (Linux/Mac)
