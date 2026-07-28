@@ -32,7 +32,7 @@ jobs:
 
       - name: Build & Test
         working-directory: backend
-        run: ./mvnw.cmd verify -B -DnvdApiKey=%NVD_API_KEY%
+        run: ./mvnw verify -B -DnvdApiKey=$NVD_API_KEY
         env:
           OPENROUTER_API_KEY: ci-placeholder
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
@@ -52,14 +52,13 @@ jobs:
           path: backend/target/dependency-check-report.html
 
       - name: Fetch full git history
-        shell: cmd
-        run: git fetch --unshallow 2>nul || echo Already full depth or no remote
+        shell: bash
+        run: git fetch --unshallow 2>/dev/null || echo Already full depth or no remote
 
       - name: SonarQube Scan
         working-directory: backend
-        shell: powershell
-        run: ./mvnw.cmd sonar:sonar "-Dsonar.host.url=http://localhost:9000" "-Dsonar.token=$env:SONAR_TOKEN" "-Dsonar.qualitygate.wait=true" "-DnvdApiKey=$env:NVD_API_KEY"
+        shell: bash
+        run: ./mvnw sonar:sonar "-Dsonar.host.url=http://localhost:9000" "-Dsonar.token=$SONAR_TOKEN" "-Dsonar.qualitygate.wait=true" "-DnvdApiKey=$NVD_API_KEY"
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
-
