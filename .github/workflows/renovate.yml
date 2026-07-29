@@ -9,13 +9,10 @@ jobs:
     runs-on: self-hosted
     env:
       RENOVATE_REPOSITORIES: ${{ github.repository }}
-      RENOVATE_BASE_DIR: /tmp/renovate
+      RENOVATE_BASE_DIR: /tmp/renovate-${{ github.run_id }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Prepare renovate cache
-        run: rm -rf /tmp/renovate && mkdir -p /tmp/renovate && chmod 777 /tmp/renovate
 
       - name: Self-hosted Renovate
         uses: renovatebot/github-action@v41.0.0
