@@ -10,9 +10,11 @@
   "packageRules": [
     {
       "description": "Group all Spring Boot updates",
-      "matchPackagePrefixes": ["org.springframework.boot"],
       "groupName": "Spring Boot",
-      "groupSlug": "spring-boot"
+      "groupSlug": "spring-boot",
+      "matchPackageNames": [
+        "org.springframework.boot{/,}**"
+      ]
     },
     {
       "description": "Group all GitHub Actions updates",
@@ -22,7 +24,9 @@
     },
     {
       "description": "Group non-Angular frontend devDependencies",
-      "matchPaths": ["frontend/package.json"],
+      "matchFileNames": [
+        "frontend/package.json"
+      ],
       "matchDepTypes": ["devDependencies"],
       "groupName": "Frontend devDependencies",
       "groupSlug": "frontend-dev"
