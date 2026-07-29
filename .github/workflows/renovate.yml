@@ -3,15 +3,15 @@ on:
   schedule:
     - cron: '0 9 * * 1'
   workflow_dispatch:
+
 jobs:
   renovate:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Self-hosted Renovate
+        uses: renovatebot/github-action@v41.0.0
         with:
-          node-version: 22
-      - name: Run Renovate
-        run: npx renovate
-        env:
-          RENOVATE_TOKEN: ${{ secrets.RENOVATE_TOKEN }}
+          token: ${{ secrets.RENOVATE_TOKEN }}
