@@ -7,14 +7,22 @@ on:
 jobs:
   renovate:
     runs-on: self-hosted
-    env:
-      RENOVATE_REPOSITORIES: ${{ github.repository }}
-      RENOVATE_BASE_DIR: /tmp/renovate-${{ github.run_id }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Self-hosted Renovate
-        uses: renovatebot/github-action@v41.0.0
-        with:
-          token: ${{ secrets.RENOVATE_TOKEN }}
+      - name: Run Renovate
+        env:
+          RENOVATE_TOKEN: ${{ secrets.RENOVATE_TOKEN }}
+        run: |
+          docker run --rm \
+            --user $(id -u):$(id -g) \
+            -e RENOVATE_REPOSITORIES=${{ github.repository }} \
+            -e RENOVATE_TOKEN \
+            -e RENOVATE_BASE_DIR=/tmp/renovate-${{ github.run_id }} \
+            -v /tmp:/tmp \
+            ghcr.io/renovatebot/renovate:latest
+
+      - name: Cleanup renovate temp files
+        if: always()
+        run: rm -rf /tmp/renovate-${{ github.run_id }}
