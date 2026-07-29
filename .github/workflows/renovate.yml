@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Prepare renovate cache
-        run: mkdir -p /tmp/renovate && chmod 777 /tmp/renovate
+        run: rm -rf /tmp/renovate && mkdir -p /tmp/renovate && chmod 777 /tmp/renovate
 
       - name: Self-hosted Renovate
         uses: renovatebot/github-action@v41.0.0
