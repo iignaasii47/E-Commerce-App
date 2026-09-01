@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>4.1.0</version>
+		<version>4.1.1</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.iignaasii47</groupId>
@@ -30,7 +30,7 @@
 		<java.version>26</java.version>
 		<maven.compiler.proc>full</maven.compiler.proc>
 		<sonar.projectKey>ecommerce-api</sonar.projectKey>
-		<tomcat.version>11.0.24</tomcat.version>
+		<tomcat.version>11.0.25</tomcat.version>
 		<postgresql.version>42.7.12</postgresql.version>
 	</properties>
 	<dependencies>
